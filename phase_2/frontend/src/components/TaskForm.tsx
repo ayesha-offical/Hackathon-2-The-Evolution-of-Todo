@@ -20,7 +20,7 @@ interface Task {
 
 interface TaskFormProps {
   task?: Task;
-  onSubmit: (data: Task) => Promise<void>;
+  onSubmit: (data: any) => Promise<void>;
   onCancel: () => void;
   isLoading?: boolean;
 }

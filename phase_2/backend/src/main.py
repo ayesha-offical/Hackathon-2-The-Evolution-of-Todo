@@ -200,12 +200,26 @@ app.include_router(api_v1_router)
 
 
 if __name__ == "__main__":
+    import asyncio
+    import sys
     import uvicorn
 
+    # Fix for Python 3.8 + uvloop compatibility issue
+    # Set the event loop policy explicitly to avoid RuntimeError
+    if sys.version_info >= (3, 8) and sys.platform.startswith("linux"):
+        try:
+            # Try to use uvloop if available, but with proper event loop setup
+            import uvloop
+            asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+        except (ImportError, RuntimeError):
+            # Fall back to default asyncio event loop
+            pass
+
     uvicorn.run(
-        "main:app",
+        "src.main:app",
         host=settings.api_host,
         port=settings.api_port,
         reload=settings.is_development(),
         log_level=settings.log_level.lower(),
+        loop="asyncio",  # Use asyncio instead of auto-detecting uvloop
     )

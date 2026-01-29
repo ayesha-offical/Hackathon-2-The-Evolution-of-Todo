@@ -97,7 +97,7 @@ export default function EditTaskPage() {
    *
    * Constitution III: User isolation enforced by backend filtering by JWT user_id
    */
-  const handleSubmit = async (formData: Task) => {
+  const handleSubmit = async (formData: Partial<Task>) => {
     setIsSaving(true);
     setError(null);
 

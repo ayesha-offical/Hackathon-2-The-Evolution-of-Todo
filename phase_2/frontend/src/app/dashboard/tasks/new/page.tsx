@@ -12,7 +12,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import TaskForm from '@/components/TaskForm';
 import { ErrorAlert, SuccessToast, AlertContainer } from '@/components/common/Alert';
-import { Header } from '@/components/common/Header';
 import { apiCall } from '@/lib/api';
 import { ROUTES, TASK_STATUS } from '@/config/constants';
 import type { Task, ErrorResponse } from '@/types';
@@ -73,7 +72,7 @@ export default function CreateTaskPage() {
         throw new Error(errorData.detail || 'Failed to create task');
       }
 
-      const createdTask: Task = await response.json();
+      const _createdTask: Task = await response.json();
 
       // Show success message
       setSuccess('Task created successfully!');
@@ -100,7 +99,6 @@ export default function CreateTaskPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <Header title="New Task" />
 
       {/* Main Content */}
       <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

@@ -46,16 +46,16 @@ export function Navigation() {
   };
 
   return (
-    <nav className="sticky top-0 z-50 border-b bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+    <nav className="sticky top-0 z-50 border-b border-border bg-background-elevated/80 backdrop-blur-md shadow-glass">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo/Brand */}
           <Link
             href={user ? ROUTES.DASHBOARD : ROUTES.HOME}
-            className="flex items-center gap-2 flex-shrink-0"
+            className="flex items-center gap-2 flex-shrink-0 group"
           >
-            <span className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
-              📝 Phase 2
+            <span className="text-lg sm:text-xl font-bold bg-gradient-primary bg-clip-text text-transparent group-hover:opacity-80 transition-opacity">
+              ✨ Todo Fusion
             </span>
           </Link>
 
@@ -63,15 +63,15 @@ export function Navigation() {
           <DesktopUp>
             <div className="flex items-center gap-6">
               {isLoading ? (
-                <div className="h-8 w-20 animate-pulse bg-gray-200 dark:bg-gray-700 rounded" />
+                <div className="h-8 w-20 animate-pulse bg-primary/20 rounded-lg" />
               ) : user ? (
                 <>
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <span className="text-sm font-medium text-text-secondary group-hover:text-white transition-colors">
                     {user.email}
                   </span>
                   <button
                     onClick={logout}
-                    className="btn-secondary inline-flex items-center gap-2 px-3 py-2 text-sm"
+                    className="btn-secondary inline-flex items-center gap-2 px-4 py-2 text-sm"
                   >
                     Logout
                   </button>
@@ -93,7 +93,7 @@ export function Navigation() {
           <MobileOnly>
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              className="inline-flex items-center justify-center p-2 rounded-lg text-text-secondary hover:text-white hover:bg-white/10 transition-colors"
               aria-expanded={isMobileMenuOpen}
               aria-label="Toggle mobile menu"
             >
@@ -138,18 +138,18 @@ export function Navigation() {
         <>
           {/* Overlay */}
           <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 sm:hidden"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 sm:hidden"
             onClick={handleMenuClose}
           />
 
           {/* Menu */}
-          <div className="sm:hidden border-t bg-white dark:bg-gray-800 shadow-lg">
+          <div className="sm:hidden border-t border-border bg-background-elevated/90 backdrop-blur-md shadow-glass">
             <div className="px-4 py-4 space-y-3">
               {isLoading ? (
-                <div className="h-8 w-20 animate-pulse bg-gray-200 dark:bg-gray-700 rounded" />
+                <div className="h-8 w-20 animate-pulse bg-primary/20 rounded-lg" />
               ) : user ? (
                 <>
-                  <div className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <div className="px-4 py-2 text-sm font-medium text-text-secondary">
                     {user.email}
                   </div>
                   <button

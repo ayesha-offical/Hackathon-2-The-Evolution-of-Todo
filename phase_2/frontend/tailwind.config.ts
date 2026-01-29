@@ -1,8 +1,8 @@
 /**
- * Task: T075 | Spec: @specs/001-sdd-initialization/ui/pages.md §Design System
- * Description: Tailwind CSS configuration with violet theme and custom utilities
- * Purpose: Centralize design system tokens (colors, typography, spacing, components)
- * Reference: plan.md Step 5, Constitution VI (Code Quality)
+ * Task: T075 | Spec: TodoFusion Design System
+ * Description: Tailwind CSS configuration with dark purple/indigo theme
+ * Purpose: Implement TodoFusion aesthetic with glassmorphism and neon effects
+ * Reference: https://todofusion.framer.website/
  */
 
 import type { Config } from "tailwindcss";
@@ -13,23 +13,23 @@ const config: Config = {
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+  darkMode: "class",
   theme: {
     extend: {
       /**
        * Typography System
-       * Configured with Inter and Geist fonts with system fallback
-       * Reference: ui/pages.md §Typography
+       * TodoFusion uses Inter and Plus Jakarta Sans
        */
       fontFamily: {
         sans: [
-          "var(--font-inter)",
-          "var(--font-geist-sans)",
+          "Inter",
+          "Plus Jakarta Sans",
           "system-ui",
           "ui-sans-serif",
           "sans-serif",
         ],
         mono: [
-          "var(--font-geist-mono)",
+          "Fragment Mono",
           "system-ui",
           "ui-monospace",
           "monospace",
@@ -37,428 +37,306 @@ const config: Config = {
       },
 
       /**
-       * Color Palette System
-       * Primary: Violet/Indigo (#7c3aed) instead of blue
-       * Alerts: Soft green (success), soft red (error)
-       * Reference: ui/pages.md §Design System, video requirements
+       * Color Palette System - TodoFusion Dark Theme
+       * Primary: Purple/Indigo (#8624ff)
+       * Accents: Cyan (#22d2ed), Pink (#e973bb)
+       * Backgrounds: Deep charcoal (#121218) to lighter surfaces (#1b1b21)
        */
       colors: {
-        /**
-         * Primary Color: Violet/Indigo Theme
-         * Used for buttons, links, active states
-         * Main color: #7c3aed (primary-700)
-         */
+        // Primary Purple/Indigo Theme
         primary: {
-          50: "#faf5ff",
-          100: "#f3e8ff",
-          200: "#e9d5ff",
-          300: "#d8b4fe",
-          400: "#c084fc",
-          500: "#a855f7",
-          600: "#9333ea",
-          700: "#7c3aed", // Main violet
+          DEFAULT: "#8624ff",
+          50: "#f5f3ff",
+          100: "#ede9fe",
+          200: "#ddd6fe",
+          300: "#c4b5fd",
+          400: "#a78bfa",
+          500: "#8b5cf6",
+          600: "#8624ff", // Main purple
+          700: "#7c3aed",
           800: "#6b21a8",
           900: "#581c87",
           950: "#3b0764",
         },
 
-        /**
-         * Secondary Color: Green
-         * Used for success states, positive actions
-         */
-        success: {
-          50: "#f0fdf4",
-          100: "#dcfce7",
-          200: "#bbf7d0",
-          500: "#22c55e", // Soft green
-          600: "#16a34a",
+        // Accent Colors
+        accent: {
+          cyan: "#22d2ed",
+          pink: "#e973bb",
+          purple: "#8624ff",
         },
 
-        /**
-         * Warning Color: Orange
-         * Used for warning states, alerts
-         */
-        warning: {
-          50: "#fffbeb",
-          100: "#fef3c7",
-          500: "#f59e0b",
-          600: "#d97706",
-        },
-
-        /**
-         * Error Color: Red
-         * Used for error states, destructive actions
-         */
-        error: {
-          50: "#fef2f2",
-          100: "#fee2e2",
-          500: "#ef4444", // Soft red
-          600: "#dc2626",
-        },
-
-        /**
-         * Neutral Colors
-         * Background and border colors
-         * Reference: ui/pages.md §Design System
-         */
+        // Background Colors
         background: {
-          DEFAULT: "#ffffff",
-          secondary: "#f9fafb", // Light gray background
+          DEFAULT: "#121218", // Deep charcoal
+          surface: "#1b1b21", // Slightly lighter
+          elevated: "#232329", // Even lighter for cards
         },
+
+        // Text Colors
+        text: {
+          primary: "#ffffff",
+          secondary: "#94979e", // Muted gray
+          muted: "#6b6d75",
+        },
+
+        // Border Colors
         border: {
-          light: "#f3f4f6", // Light gray borders
-          DEFAULT: "#e5e7eb", // Medium gray borders
+          DEFAULT: "rgba(255, 255, 255, 0.08)",
+          light: "rgba(255, 255, 255, 0.05)",
+          strong: "rgba(255, 255, 255, 0.12)",
+        },
+
+        // Success/Error Colors (adjusted for dark theme)
+        success: {
+          DEFAULT: "#10b981",
+          light: "#34d399",
+          dark: "#059669",
+        },
+        error: {
+          DEFAULT: "#ef4444",
+          light: "#f87171",
+          dark: "#dc2626",
+        },
+        warning: {
+          DEFAULT: "#f59e0b",
+          light: "#fbbf24",
+          dark: "#d97706",
         },
       },
 
       /**
        * Border Radius System
-       * Custom xl (12px) for cards and buttons
-       * Reference: ui/pages.md §Spacing, video requirements
+       * TodoFusion uses 16px for cards
        */
       borderRadius: {
         xs: "4px",
-        sm: "6px",
-        DEFAULT: "8px",
-        md: "12px",
-        lg: "14px",
-        xl: "12px", // Custom size for cards/buttons as per video
-        "2xl": "16px",
-        "3xl": "24px",
+        sm: "8px",
+        DEFAULT: "12px",
+        md: "14px",
+        lg: "16px",
+        xl: "20px",
+        "2xl": "24px",
+        "3xl": "32px",
         full: "9999px",
       },
 
       /**
-       * Spacing System
-       * Base unit: 8px
-       * Reference: ui/pages.md §Spacing
-       */
-      spacing: {
-        px: "1px",
-        0.5: "2px",
-        1: "4px",
-        1.5: "6px",
-        2: "8px",
-        2.5: "10px",
-        3: "12px",
-        3.5: "14px",
-        4: "16px",
-        5: "20px",
-        6: "24px",
-        7: "28px",
-        8: "32px",
-        9: "36px",
-        10: "40px",
-        12: "48px",
-        14: "56px",
-        16: "64px",
-        20: "80px",
-        24: "96px",
-        28: "112px",
-        32: "128px",
-        36: "144px",
-        40: "160px",
-        44: "176px",
-        48: "192px",
-        52: "208px",
-        56: "224px",
-        60: "240px",
-        64: "256px",
-        72: "288px",
-        80: "320px",
-        96: "384px",
-      },
-
-      /**
-       * Shadow System
-       * Subtle shadows for depth
+       * Shadow System with Glassmorphism
+       * Subtle shadows and glows for depth
        */
       boxShadow: {
-        xs: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
-        sm: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
-        DEFAULT:
-          "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
-        md: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
-        lg: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
-        xl: "0 25px 50px -12px rgba(0, 0, 0, 0.15)",
+        glow: "0 0 20px rgba(134, 36, 255, 0.3)",
+        "glow-sm": "0 0 10px rgba(134, 36, 255, 0.2)",
+        "glow-lg": "0 0 30px rgba(134, 36, 255, 0.4)",
+        "glow-cyan": "0 0 20px rgba(34, 210, 237, 0.3)",
+        "glow-pink": "0 0 20px rgba(233, 115, 187, 0.3)",
+        glass: "0 8px 32px 0 rgba(0, 0, 0, 0.37)",
+        "glass-sm": "0 4px 16px 0 rgba(0, 0, 0, 0.2)",
+        card: "0 4px 16px rgba(0, 0, 0, 0.4)",
+        "card-hover": "0 8px 24px rgba(0, 0, 0, 0.5)",
+        inner: "inset 0px 2px 4px rgba(0, 0, 0, 0.3)",
       },
 
       /**
-       * Backdrop Blur Effects
-       * For navigation/header with subtle blur effect
-       * Reference: video requirements
+       * Backdrop Blur Effects for Glassmorphism
        */
       backdropBlur: {
+        xs: "2px",
         sm: "4px",
         DEFAULT: "8px",
         md: "12px",
         lg: "16px",
-        xl: "20px",
+        xl: "24px",
+        "2xl": "40px",
       },
 
       /**
-       * Responsive Breakpoints
-       * Mobile: <640px (sm), Tablet: 640px-1024px, Desktop: >1024px
-       * Reference: ui/pages.md §Responsive Breakpoints
+       * Background Gradients
        */
-      screens: {
-        xs: "375px",
-        sm: "640px",
-        md: "768px",
-        lg: "1024px",
-        xl: "1280px",
-        "2xl": "1536px",
+      backgroundImage: {
+        "gradient-primary": "linear-gradient(135deg, #8624ff 0%, #a855f7 100%)",
+        "gradient-accent": "linear-gradient(135deg, #8624ff 0%, #22d2ed 100%)",
+        "gradient-pink": "linear-gradient(135deg, #8624ff 0%, #e973bb 100%)",
+        "gradient-radial": "radial-gradient(circle, var(--tw-gradient-stops))",
       },
 
       /**
-       * Transition/Animation System
+       * Animation System
+       */
+      animation: {
+        "fade-in": "fadeIn 0.3s ease-in-out",
+        "slide-up": "slideUp 0.3s ease-out",
+        "slide-down": "slideDown 0.3s ease-out",
+        glow: "glow 2s ease-in-out infinite alternate",
+        float: "float 3s ease-in-out infinite",
+      },
+      keyframes: {
+        fadeIn: {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+        slideUp: {
+          "0%": { transform: "translateY(10px)", opacity: "0" },
+          "100%": { transform: "translateY(0)", opacity: "1" },
+        },
+        slideDown: {
+          "0%": { transform: "translateY(-10px)", opacity: "0" },
+          "100%": { transform: "translateY(0)", opacity: "1" },
+        },
+        glow: {
+          "0%": { boxShadow: "0 0 10px rgba(134, 36, 255, 0.3)" },
+          "100%": { boxShadow: "0 0 20px rgba(134, 36, 255, 0.6)" },
+        },
+        float: {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-10px)" },
+        },
+      },
+
+      /**
+       * Transition System
        */
       transitionDuration: {
         DEFAULT: "200ms",
-        fast: "100ms",
-        normal: "200ms",
-        slow: "300ms",
-      },
-      transitionTimingFunction: {
-        DEFAULT: "cubic-bezier(0.4, 0, 0.2, 1)",
-        in: "cubic-bezier(0.4, 0, 1, 1)",
-        out: "cubic-bezier(0, 0, 0.2, 1)",
-        "in-out": "cubic-bezier(0.4, 0, 0.2, 1)",
+        fast: "150ms",
+        normal: "300ms",
+        slow: "500ms",
       },
     },
   },
 
   /**
-   * Component Layer
-   * Define reusable component classes for consistency
-   * Reference: video requirements for button styles, card styles
+   * Component Layer - TodoFusion Style Components
    */
   plugins: [
     function ({ addComponents, theme }) {
       addComponents({
-        // Button Styles
+        // Button Styles with Gradient and Glow
 
-        /**
-         * Primary Button
-         * Solid violet background with white text
-         * Used for main actions (Create, Update, Submit)
-         */
         ".btn-primary": {
-          "@apply inline-flex items-center justify-center px-6 py-2 rounded-xl font-medium text-white bg-primary-700 hover:bg-primary-800 active:bg-primary-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-fast":
+          "@apply inline-flex items-center justify-center px-6 py-3 rounded-xl font-semibold text-white bg-gradient-primary hover:shadow-glow active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-normal":
             {},
         },
 
-        /**
-         * Secondary Button
-         * Outlined violet with text
-         * Used for secondary actions (Cancel, Back)
-         */
         ".btn-secondary": {
-          "@apply inline-flex items-center justify-center px-6 py-2 rounded-xl font-medium text-primary-700 border-2 border-primary-700 hover:bg-primary-50 active:bg-primary-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-fast":
+          "@apply inline-flex items-center justify-center px-6 py-3 rounded-xl font-semibold text-white border-2 border-primary/50 bg-background-elevated/50 hover:border-primary hover:bg-background-elevated backdrop-blur-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-normal":
             {},
         },
 
-        /**
-         * Destructive Button
-         * Red background for delete/destructive actions
-         */
         ".btn-destructive": {
-          "@apply inline-flex items-center justify-center px-6 py-2 rounded-xl font-medium text-white bg-error-500 hover:bg-error-600 active:bg-error-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-fast":
+          "@apply inline-flex items-center justify-center px-6 py-3 rounded-xl font-semibold text-white bg-error hover:bg-error-light active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-normal":
             {},
         },
 
-        /**
-         * Ghost Button
-         * Minimal style, text only
-         */
         ".btn-ghost": {
-          "@apply inline-flex items-center justify-center px-4 py-2 rounded-xl font-medium text-gray-700 hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-fast":
+          "@apply inline-flex items-center justify-center px-4 py-2 rounded-xl font-medium text-text-secondary hover:text-white hover:bg-white/5 active:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-fast":
             {},
         },
 
-        // Card Styles
+        // Card Styles with Glassmorphism
 
-        /**
-         * Base Card Component
-         * White background with rounded corners and subtle border
-         * Reference: video requirements for card styling
-         */
         ".card": {
-          "@apply bg-white rounded-xl shadow-sm border border-border-light": {},
+          "@apply bg-background-elevated/80 backdrop-blur-md rounded-lg border border-border shadow-card":
+            {},
         },
 
-        /**
-         * Card with Hover State
-         * Elevated card for interactive elements
-         */
         ".card-interactive": {
-          "@apply bg-white rounded-xl shadow-sm border border-border-light hover:shadow-md hover:border-border-DEFAULT transition-all duration-normal":
+          "@apply bg-background-elevated/80 backdrop-blur-md rounded-lg border border-border shadow-card hover:shadow-card-hover hover:border-primary/30 hover:-translate-y-1 transition-all duration-normal cursor-pointer":
             {},
         },
 
-        /**
-         * Card Header
-         * For card title sections
-         */
-        ".card-header": {
-          "@apply px-6 py-4 border-b border-border-light": {},
-        },
-
-        /**
-         * Card Content
-         * For card body sections
-         */
-        ".card-content": {
-          "@apply px-6 py-4": {},
-        },
-
-        /**
-         * Card Footer
-         * For card action sections
-         */
-        ".card-footer": {
-          "@apply px-6 py-4 border-t border-border-light bg-background-secondary":
+        ".card-gradient": {
+          "@apply bg-gradient-to-br from-background-elevated/90 to-background-elevated/70 backdrop-blur-md rounded-lg border border-border shadow-card":
             {},
         },
 
-        // Form Styles
+        ".card-glow": {
+          "@apply bg-background-elevated/80 backdrop-blur-md rounded-lg border border-primary/50 shadow-glow":
+            {},
+        },
 
-        /**
-         * Form Input Base
-         * Reusable input styling
-         */
+        // Input Styles with Glow on Focus
+
         ".input-base": {
-          "@apply w-full px-4 py-2 border border-border-DEFAULT rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors":
+          "@apply w-full px-4 py-3 bg-background-surface/50 border border-border rounded-lg text-white placeholder:text-text-muted focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:shadow-glow-sm backdrop-blur-sm transition-all":
             {},
         },
 
-        /**
-         * Form Input Error State
-         */
         ".input-error": {
-          "@apply border-error-500 bg-error-50 focus:ring-error-500": {},
+          "@apply border-error bg-error/5 focus:ring-error/20 focus:shadow-none":
+            {},
         },
 
-        /**
-         * Form Label
-         */
+        ".textarea-base": {
+          "@apply w-full px-4 py-3 bg-background-surface/50 border border-border rounded-lg text-white placeholder:text-text-muted focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:shadow-glow-sm backdrop-blur-sm transition-all resize-none":
+            {},
+        },
+
+        // Form Label
+
         ".label": {
-          "@apply block text-sm font-medium text-gray-900 mb-2": {},
+          "@apply block text-sm font-semibold text-text-secondary mb-2": {},
         },
 
-        /**
-         * Form Label Required Indicator
-         */
         ".label-required": {
-          "@apply text-error-500": {},
+          "@apply text-error": {},
         },
 
         // Layout Styles
 
-        /**
-         * Page Container
-         * Standard page layout wrapper
-         */
         ".page-container": {
-          "@apply min-h-screen bg-background-secondary": {},
+          "@apply min-h-screen bg-background": {},
         },
 
-        /**
-         * Content Wrapper
-         * Standard content max-width and padding
-         */
         ".content-wrapper": {
-          "@apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8": {},
+          "@apply max-w-6xl mx-auto px-4 sm:px-6 lg:px-8": {},
         },
 
-        /**
-         * Section Spacing
-         * Standard vertical spacing between sections
-         */
         ".section-spacing": {
           "@apply space-y-8": {},
         },
 
-        // Alert Styles
+        // Alert Styles (Dark Theme)
 
-        /**
-         * Alert Container
-         * Base alert styling
-         */
         ".alert": {
-          "@apply rounded-xl p-4 flex items-start gap-4": {},
+          "@apply rounded-lg p-4 flex items-start gap-4 backdrop-blur-sm": {},
         },
 
-        /**
-         * Success Alert
-         */
         ".alert-success": {
-          "@apply bg-success-50 border border-success-200 text-success-900":
+          "@apply bg-success/10 border border-success/30 text-success-light":
             {},
         },
 
-        /**
-         * Error Alert
-         */
         ".alert-error": {
-          "@apply bg-error-50 border border-error-200 text-error-900": {},
+          "@apply bg-error/10 border border-error/30 text-error-light": {},
         },
 
-        /**
-         * Warning Alert
-         */
         ".alert-warning": {
-          "@apply bg-warning-50 border border-warning-200 text-warning-900":
+          "@apply bg-warning/10 border border-warning/30 text-warning-light":
             {},
         },
 
-        /**
-         * Info Alert
-         */
         ".alert-info": {
-          "@apply bg-blue-50 border border-blue-200 text-blue-900": {},
+          "@apply bg-primary/10 border border-primary/30 text-primary-300": {},
         },
 
         // Utility Classes
 
-        /**
-         * Text Truncation
-         * Single line ellipsis
-         */
-        ".truncate-1": {
-          "@apply truncate": {},
+        ".glass": {
+          "@apply backdrop-blur-md bg-white/5 border border-white/10": {},
         },
 
-        /**
-         * Multi-line Truncation
-         * Up to 2 lines
-         */
-        ".truncate-2": {
-          "@apply line-clamp-2": {},
+        ".glass-strong": {
+          "@apply backdrop-blur-lg bg-white/10 border border-white/20": {},
         },
 
-        /**
-         * Multi-line Truncation
-         * Up to 3 lines
-         */
-        ".truncate-3": {
-          "@apply line-clamp-3": {},
+        ".glow-text": {
+          "@apply text-transparent bg-clip-text bg-gradient-primary": {},
         },
 
-        /**
-         * Fade In Animation
-         * Subtle fade-in effect for components
-         */
-        ".fade-in": {
-          "@apply animate-fade-in": {},
-        },
-
-        /**
-         * Scrollbar Styling
-         * Custom scrollbar for modern look
-         */
-        ".scrollbar-thin": {
-          "@apply scrollbar-w-2 scrollbar-track-gray-100 scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400":
+        ".border-gradient": {
+          "@apply relative before:absolute before:inset-0 before:rounded-lg before:p-[1px] before:bg-gradient-primary before:-z-10":
             {},
         },
       });
@@ -474,6 +352,13 @@ const config: Config = {
         },
         ".animation-delay-300": {
           "animation-delay": "300ms",
+        },
+        ".scrollbar-hide": {
+          "-ms-overflow-style": "none",
+          "scrollbar-width": "none",
+          "&::-webkit-scrollbar": {
+            display: "none",
+          },
         },
       });
     },
