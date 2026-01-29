@@ -29,28 +29,28 @@ export function Header() {
   const { user, isLoading, logout } = useAuth();
 
   return (
-    <header className="sticky top-0 z-50 border-b bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+    <header className="sticky top-0 z-50 border-b border-border bg-background-elevated/80 backdrop-blur-md shadow-glass">
       <div className="container mx-auto px-4 py-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           {/* Logo/Brand */}
           <Link
             href={user ? ROUTES.DASHBOARD : ROUTES.HOME}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 group"
           >
-            <span className="text-xl font-bold text-gray-900 dark:text-white">
-              📝 Phase 2 Todo
+            <span className="text-lg sm:text-xl font-bold bg-gradient-primary bg-clip-text text-transparent group-hover:opacity-80 transition-opacity">
+              ✨ Todo Fusion
             </span>
           </Link>
 
           {/* Navigation */}
           <nav className="flex items-center gap-4">
             {isLoading ? (
-              <div className="h-8 w-20 animate-pulse bg-gray-200 dark:bg-gray-700 rounded" />
+              <div className="h-8 w-20 animate-pulse bg-primary/20 rounded-lg" />
             ) : user ? (
               <>
                 {/* User email */}
                 <div className="hidden sm:block">
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <span className="text-sm font-medium text-text-secondary group-hover:text-white transition-colors">
                     {user.email}
                   </span>
                 </div>

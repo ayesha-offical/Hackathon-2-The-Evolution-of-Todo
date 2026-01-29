@@ -50,12 +50,12 @@ export default function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
   // Get status badge color
   const getStatusColor = (status: string): string => {
     const colors: Record<string, string> = {
-      [TASK_STATUS.PENDING]: 'bg-blue-100 text-blue-800',
-      [TASK_STATUS.IN_PROGRESS]: 'bg-orange-100 text-orange-800',
-      [TASK_STATUS.COMPLETED]: 'bg-green-100 text-green-800',
-      [TASK_STATUS.ARCHIVED]: 'bg-gray-100 text-gray-800',
+      [TASK_STATUS.PENDING]: 'bg-primary/20 text-primary-300 border border-primary/30',
+      [TASK_STATUS.IN_PROGRESS]: 'bg-accent-cyan/20 text-accent-cyan border border-accent-cyan/30',
+      [TASK_STATUS.COMPLETED]: 'bg-success/20 text-success-light border border-success/30',
+      [TASK_STATUS.ARCHIVED]: 'bg-text-muted/20 text-text-secondary border border-text-muted/30',
     };
-    return colors[status] || 'bg-gray-100 text-gray-800';
+    return colors[status] || 'bg-primary/20 text-primary-300 border border-primary/30';
   };
 
   // Format relative time
@@ -80,7 +80,7 @@ export default function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow p-4">
+    <div className="card-interactive group">
       <div className="flex gap-4">
         {/* Checkbox */}
         <div className="flex items-center pt-1">
@@ -88,7 +88,7 @@ export default function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
             type="checkbox"
             checked={isChecked}
             onChange={(e) => setIsChecked(e.target.checked)}
-            className="w-5 h-5 text-blue-600 rounded cursor-pointer"
+            className="w-5 h-5 bg-background-surface/50 border border-primary/30 rounded cursor-pointer accent-primary"
             aria-label={`Mark task "${task.title}" as complete`}
           />
         </div>
@@ -99,12 +99,12 @@ export default function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
           <div className="flex items-start justify-between gap-2 mb-2">
             <button
               onClick={() => onEdit(task.id)}
-              className="text-left font-semibold text-gray-900 hover:text-blue-600 transition-colors truncate flex-1"
+              className="text-left font-semibold text-text-primary hover:text-primary transition-colors truncate flex-1 group-hover:text-primary"
             >
               {task.title}
             </button>
             <span
-              className={`inline-block px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${getStatusColor(
+              className={`inline-block px-2 py-1 text-xs font-medium rounded-md whitespace-nowrap flex-shrink-0 ${getStatusColor(
                 task.status
               )}`}
             >
@@ -114,23 +114,23 @@ export default function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
 
           {/* Description Preview */}
           {descriptionPreview && (
-            <p className="text-gray-600 text-sm mb-2 line-clamp-2">
+            <p className="text-text-secondary text-sm mb-2 line-clamp-2">
               {descriptionPreview}
               {task.description && task.description.length > 100 && '...'}
             </p>
           )}
 
           {/* Metadata */}
-          <div className="text-gray-500 text-xs">
+          <div className="text-text-muted text-xs">
             Created {relativeTime}
           </div>
         </div>
 
         {/* Actions */}
-        <div className="flex gap-2 items-start">
+        <div className="flex gap-2 items-start opacity-0 group-hover:opacity-100 transition-opacity">
           <Link
             href={`/dashboard/tasks/${task.id}`}
-            className="px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded transition-colors"
+            className="btn-ghost text-xs py-1 px-2"
             title="Edit task"
           >
             Edit
@@ -138,7 +138,7 @@ export default function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
           <button
             onClick={handleDelete}
             disabled={isDeleting}
-            className="px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-ghost text-xs py-1 px-2 text-error hover:text-error-light"
             title="Delete task"
           >
             {isDeleting ? 'Deleting...' : 'Delete'}

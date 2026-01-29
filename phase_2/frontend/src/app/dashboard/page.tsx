@@ -185,27 +185,27 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl py-6 sm:py-8 lg:py-12">
+    <div className="page-container">
+      <div className="content-wrapper max-w-6xl py-6 sm:py-8 lg:py-12">
         {/* Header Section */}
         <div className="mb-8">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-text-primary">
             Dashboard
           </h1>
-          <p className="mt-2 text-sm sm:text-base text-gray-600 dark:text-gray-400">
+          <p className="mt-2 text-sm sm:text-base text-text-secondary">
             Welcome, {user.email}
           </p>
         </div>
 
         {/* Error Alert - Responsive */}
         {error && (
-          <div className="mb-6 rounded-md bg-red-50 dark:bg-red-900/20 p-4 sm:p-5 border border-red-200 dark:border-red-800">
-            <p className="text-xs sm:text-sm font-medium text-red-800 dark:text-red-200">
+          <div className="mb-6 alert alert-error">
+            <p className="text-xs sm:text-sm font-medium">
               {error}
             </p>
             <button
               onClick={() => setError(null)}
-              className="mt-2 text-xs sm:text-sm text-red-600 dark:text-red-400 hover:underline"
+              className="mt-2 text-xs sm:text-sm text-error-light hover:text-error underline"
             >
               Dismiss
             </button>
@@ -213,130 +213,136 @@ export default function DashboardPage() {
         )}
 
         {/* Create Task Form - Responsive */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 mb-8">
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4">
-            Create New Task
-          </h2>
-          <form onSubmit={handleCreateTask} className="space-y-4">
-            <div>
-              <label htmlFor="title" className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">
-                Title *
-              </label>
-              <input
-                id="title"
-                type="text"
-                value={newTaskTitle}
-                onChange={(e) => setNewTaskTitle(e.target.value)}
-                placeholder="Enter task title"
-                className="input w-full text-sm sm:text-base mt-1"
-                disabled={isCreating}
-                required
-                maxLength={255}
-              />
-            </div>
+        <div className="card mb-8">
+          <div className="p-4 sm:p-6">
+            <h2 className="text-lg sm:text-xl font-semibold text-text-primary mb-4">
+              Create New Task
+            </h2>
+            <form onSubmit={handleCreateTask} className="space-y-4">
+              <div>
+                <label htmlFor="title" className="label">
+                  Title *
+                </label>
+                <input
+                  id="title"
+                  type="text"
+                  value={newTaskTitle}
+                  onChange={(e) => setNewTaskTitle(e.target.value)}
+                  placeholder="Enter task title"
+                  className="input-base w-full text-sm sm:text-base"
+                  disabled={isCreating}
+                  required
+                  maxLength={255}
+                />
+              </div>
 
-            <div>
-              <label htmlFor="description" className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">
-                Description (optional)
-              </label>
-              <textarea
-                id="description"
-                value={newTaskDescription}
-                onChange={(e) => setNewTaskDescription(e.target.value)}
-                placeholder="Enter task description"
-                className="input w-full text-sm sm:text-base mt-1"
-                disabled={isCreating}
-                rows={3}
-                maxLength={2000}
-              />
-            </div>
+              <div>
+                <label htmlFor="description" className="label">
+                  Description (optional)
+                </label>
+                <textarea
+                  id="description"
+                  value={newTaskDescription}
+                  onChange={(e) => setNewTaskDescription(e.target.value)}
+                  placeholder="Enter task description"
+                  className="textarea-base w-full text-sm sm:text-base"
+                  disabled={isCreating}
+                  rows={3}
+                  maxLength={2000}
+                />
+              </div>
 
-            <button
-              type="submit"
-              disabled={isCreating || !newTaskTitle.trim()}
-              className="btn-primary w-full text-sm sm:text-base"
-            >
-              {isCreating ? "Creating..." : "Create Task"}
-            </button>
-          </form>
+              <button
+                type="submit"
+                disabled={isCreating || !newTaskTitle.trim()}
+                className="btn-primary w-full text-sm sm:text-base"
+              >
+                {isCreating ? "Creating..." : "Create Task"}
+              </button>
+            </form>
+          </div>
         </div>
 
         {/* Task List - Responsive Grid */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6">
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4">
-            My Tasks ({tasks.length})
-          </h2>
+        <div className="card">
+          <div className="p-4 sm:p-6">
+            <h2 className="text-lg sm:text-xl font-semibold text-text-primary mb-4">
+              My Tasks ({tasks.length})
+            </h2>
 
-          {loading ? (
-            <div className="text-center py-8 sm:py-12">
-              <div className="text-sm sm:text-base text-gray-600 dark:text-gray-400">Loading tasks...</div>
-            </div>
-          ) : tasks.length === 0 ? (
-            <div className="text-center py-8 sm:py-12">
-              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
-                No tasks yet. Create one to get started!
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-4 sm:gap-5 lg:gap-6">
-              {tasks.map((task) => (
-                <div
-                  key={task.id}
-                  className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4 p-3 sm:p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-                >
-                  {/* Checkbox */}
-                  <input
-                    type="checkbox"
-                    checked={task.status === "Completed"}
-                    onChange={() => handleToggleComplete(task)}
-                    className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 flex-shrink-0"
-                  />
+            {loading ? (
+              <div className="text-center py-8 sm:py-12">
+                <div className="text-sm sm:text-base text-text-secondary">Loading tasks...</div>
+              </div>
+            ) : tasks.length === 0 ? (
+              <div className="text-center py-8 sm:py-12">
+                <p className="text-sm sm:text-base text-text-secondary">
+                  No tasks yet. Create one to get started!
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-4 sm:gap-5 lg:gap-6">
+                {tasks.map((task) => (
+                  <div
+                    key={task.id}
+                    className="card-interactive group"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4 p-3 sm:p-4">
+                      {/* Checkbox */}
+                      <input
+                        type="checkbox"
+                        checked={task.status === "Completed"}
+                        onChange={() => handleToggleComplete(task)}
+                        className="h-5 w-5 rounded accent-primary bg-background-surface/50 border border-primary/30 flex-shrink-0"
+                      />
 
-                  {/* Task Content */}
-                  <div className="flex-1 min-w-0">
-                    <h3
-                      className={`text-base sm:text-lg font-medium break-words ${
-                        task.status === TaskStatus.COMPLETED
-                          ? "line-through text-gray-500 dark:text-gray-500"
-                          : "text-gray-900 dark:text-white"
-                      }`}
-                    >
-                      {task.title}
-                    </h3>
-                    {task.description && (
-                      <p className="mt-1 text-xs sm:text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-                        {task.description}
-                      </p>
-                    )}
-                    <div className="mt-2 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 text-xs text-gray-500 dark:text-gray-500">
-                      <span
-                        className={`px-2 py-1 rounded-full w-fit ${
-                          task.status === TaskStatus.COMPLETED
-                            ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300"
-                            : task.status === TaskStatus.IN_PROGRESS
-                            ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300"
-                            : "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300"
-                        }`}
+                      {/* Task Content */}
+                      <div className="flex-1 min-w-0">
+                        <h3
+                          className={`text-base sm:text-lg font-medium break-words transition-colors ${
+                            task.status === TaskStatus.COMPLETED
+                              ? "line-through text-text-muted"
+                              : "text-text-primary group-hover:text-primary"
+                          }`}
+                        >
+                          {task.title}
+                        </h3>
+                        {task.description && (
+                          <p className="mt-1 text-xs sm:text-sm text-text-secondary line-clamp-2">
+                            {task.description}
+                          </p>
+                        )}
+                        <div className="mt-2 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 text-xs text-text-muted">
+                          <span
+                            className={`px-2 py-1 rounded-md w-fit border font-medium ${
+                              task.status === TaskStatus.COMPLETED
+                                ? "bg-success/20 text-success-light border-success/30"
+                                : task.status === TaskStatus.IN_PROGRESS
+                                ? "bg-accent-cyan/20 text-accent-cyan border-accent-cyan/30"
+                                : "bg-primary/20 text-primary-300 border-primary/30"
+                            }`}
+                          >
+                            {task.status}
+                          </span>
+                          <span className="text-xs">
+                            Created: {new Date(task.created_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Delete Button */}
+                      <button
+                        onClick={() => handleDeleteTask(task.id)}
+                        className="btn-ghost text-xs sm:text-sm px-3 py-1 text-error hover:text-error-light opacity-0 group-hover:opacity-100 transition-opacity w-full sm:w-auto"
                       >
-                        {task.status}
-                      </span>
-                      <span className="text-xs">
-                        Created: {new Date(task.created_at).toLocaleDateString()}
-                      </span>
+                        Delete
+                      </button>
                     </div>
                   </div>
-
-                  {/* Delete Button */}
-                  <button
-                    onClick={() => handleDeleteTask(task.id)}
-                    className="btn-secondary text-xs sm:text-sm px-3 py-1 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 w-full sm:w-auto"
-                  >
-                    Delete
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

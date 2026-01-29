@@ -71,17 +71,17 @@ export default function TaskFilter({
     <div className="flex flex-col sm:flex-row gap-4 mb-6">
       {/* Status Filter */}
       <div className="flex-1">
-        <label
-          htmlFor="status-filter"
-          className="block text-sm font-medium text-gray-700 mb-2"
-        >
+        <label htmlFor="status-filter" className="label">
           Filter by Status
         </label>
         <select
           id="status-filter"
           value={currentFilter}
           onChange={handleFilterChange}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors bg-white"
+          className="input-base"
+          style={{
+            colorScheme: 'dark'
+          }}
         >
           <option value="All">All Tasks</option>
           <option value={TASK_STATUS.PENDING}>{TASK_STATUS.PENDING}</option>
@@ -97,17 +97,17 @@ export default function TaskFilter({
 
       {/* Sort Dropdown */}
       <div className="flex-1">
-        <label
-          htmlFor="sort-options"
-          className="block text-sm font-medium text-gray-700 mb-2"
-        >
+        <label htmlFor="sort-options" className="label">
           Sort by
         </label>
         <select
           id="sort-options"
           value={currentSort}
           onChange={handleSortChange}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors bg-white"
+          className="input-base"
+          style={{
+            colorScheme: 'dark'
+          }}
         >
           <option value="Newest">Newest First</option>
           <option value="Oldest">Oldest First</option>

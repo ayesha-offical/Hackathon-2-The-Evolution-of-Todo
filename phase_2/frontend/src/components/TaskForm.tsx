@@ -142,15 +142,15 @@ export default function TaskForm({
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Submit Error */}
       {errors.submit && (
-        <div className="rounded-md bg-red-50 p-4">
-          <p className="text-sm text-red-800">{errors.submit}</p>
+        <div className="alert alert-error">
+          <p className="text-sm">{errors.submit}</p>
         </div>
       )}
 
       {/* Title Field */}
       <div>
-        <label htmlFor="title" className="block text-sm font-medium text-gray-900 mb-2">
-          Task Title <span className="text-red-600">*</span>
+        <label htmlFor="title" className="label">
+          Task Title <span className="label-required">*</span>
         </label>
         <div>
           <input
@@ -162,10 +162,8 @@ export default function TaskForm({
             onBlur={handleBlur}
             placeholder="Enter task title"
             maxLength={TASK_VALIDATION.TITLE_MAX_LENGTH}
-            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-              touched.title && errors.title
-                ? 'border-red-600 bg-red-50'
-                : 'border-gray-300'
+            className={`input-base ${
+              touched.title && errors.title ? 'input-error' : ''
             }`}
             aria-invalid={touched.title && errors.title ? 'true' : 'false'}
             aria-describedby={errors.title ? 'title-error' : undefined}
@@ -173,15 +171,15 @@ export default function TaskForm({
         </div>
 
         {/* Character Count */}
-        <div className="mt-1 flex justify-between items-center">
+        <div className="mt-2 flex justify-between items-center">
           <div>
             {touched.title && errors.title && (
-              <p id="title-error" className="text-sm text-red-600">
+              <p id="title-error" className="text-sm text-error">
                 {errors.title}
               </p>
             )}
           </div>
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-text-muted">
             {formData.title.length} / {TASK_VALIDATION.TITLE_MAX_LENGTH}
           </span>
         </div>
@@ -189,10 +187,7 @@ export default function TaskForm({
 
       {/* Description Field */}
       <div>
-        <label
-          htmlFor="description"
-          className="block text-sm font-medium text-gray-900 mb-2"
-        >
+        <label htmlFor="description" className="label">
           Description
         </label>
         <textarea
@@ -204,25 +199,23 @@ export default function TaskForm({
           placeholder="Enter task description (optional)"
           maxLength={TASK_VALIDATION.DESCRIPTION_MAX_LENGTH}
           rows={4}
-          className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-            touched.description && errors.description
-              ? 'border-red-600 bg-red-50'
-              : 'border-gray-300'
+          className={`textarea-base ${
+            touched.description && errors.description ? 'input-error' : ''
           }`}
           aria-invalid={touched.description && errors.description ? 'true' : 'false'}
           aria-describedby={errors.description ? 'description-error' : undefined}
         />
 
         {/* Character Count */}
-        <div className="mt-1 flex justify-between items-center">
+        <div className="mt-2 flex justify-between items-center">
           <div>
             {touched.description && errors.description && (
-              <p id="description-error" className="text-sm text-red-600">
+              <p id="description-error" className="text-sm text-error">
                 {errors.description}
               </p>
             )}
           </div>
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-text-muted">
             {formData.description ? formData.description.length : 0} /{' '}
             {TASK_VALIDATION.DESCRIPTION_MAX_LENGTH}
           </span>
@@ -231,10 +224,7 @@ export default function TaskForm({
 
       {/* Status Field */}
       <div>
-        <label
-          htmlFor="status"
-          className="block text-sm font-medium text-gray-900 mb-2"
-        >
+        <label htmlFor="status" className="label">
           Status
         </label>
         <select
@@ -243,7 +233,10 @@ export default function TaskForm({
           value={formData.status}
           onChange={handleChange}
           onBlur={handleBlur}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+          className="input-base"
+          style={{
+            colorScheme: 'dark'
+          }}
         >
           <option value={TASK_STATUS.PENDING}>{TASK_STATUS.PENDING}</option>
           <option value={TASK_STATUS.IN_PROGRESS}>{TASK_STATUS.IN_PROGRESS}</option>
@@ -253,19 +246,19 @@ export default function TaskForm({
       </div>
 
       {/* Action Buttons */}
-      <div className="flex gap-4 justify-end pt-6 border-t border-gray-200">
+      <div className="flex gap-4 justify-end pt-6 border-t border-border">
         <button
           type="button"
           onClick={onCancel}
           disabled={isLoading}
-          className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="btn-secondary"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={isSubmitDisabled}
-          className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="btn-primary"
         >
           {isLoading ? (
             <span className="flex items-center gap-2">

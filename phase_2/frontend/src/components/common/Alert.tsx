@@ -33,15 +33,15 @@ interface SuccessToastProps {
 export function ErrorAlert({ message, onClose }: ErrorAlertProps) {
   return (
     <div
-      className="rounded-md bg-red-50 p-4 border border-red-200"
+      className="alert alert-error"
       role="alert"
       aria-live="polite"
     >
-      <div className="flex gap-3">
+      <div className="flex gap-3 w-full">
         {/* Error Icon */}
         <div className="flex-shrink-0">
           <svg
-            className="h-5 w-5 text-red-600"
+            className="h-5 w-5 text-error-light"
             viewBox="0 0 20 20"
             fill="currentColor"
             aria-hidden="true"
@@ -56,13 +56,13 @@ export function ErrorAlert({ message, onClose }: ErrorAlertProps) {
 
         {/* Message */}
         <div className="flex-1">
-          <p className="text-sm font-medium text-red-800">{message}</p>
+          <p className="text-sm font-medium">{message}</p>
         </div>
 
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="inline-flex text-red-400 hover:text-red-500 focus:outline-none"
+          className="inline-flex text-error-light hover:text-error focus:outline-none"
           aria-label="Close error message"
         >
           <svg
@@ -115,15 +115,15 @@ export function SuccessToast({
 
   return (
     <div
-      className="rounded-md bg-green-50 p-4 border border-green-200"
+      className="alert alert-success"
       role="status"
       aria-live="polite"
     >
-      <div className="flex gap-3">
+      <div className="flex gap-3 w-full">
         {/* Success Icon */}
         <div className="flex-shrink-0">
           <svg
-            className="h-5 w-5 text-green-600"
+            className="h-5 w-5 text-success-light"
             viewBox="0 0 20 20"
             fill="currentColor"
             aria-hidden="true"
@@ -138,7 +138,7 @@ export function SuccessToast({
 
         {/* Message */}
         <div className="flex-1">
-          <p className="text-sm font-medium text-green-800">{message}</p>
+          <p className="text-sm font-medium">{message}</p>
         </div>
 
         {/* Close Button */}
@@ -147,7 +147,7 @@ export function SuccessToast({
             setIsVisible(false);
             onClose?.();
           }}
-          className="inline-flex text-green-400 hover:text-green-500 focus:outline-none"
+          className="inline-flex text-success-light hover:text-success focus:outline-none"
           aria-label="Close success message"
         >
           <svg
