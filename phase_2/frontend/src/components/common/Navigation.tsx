@@ -9,9 +9,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { ROUTES } from "@/config/constants";
 import { MobileOnly, DesktopUp } from "./Responsive";
+import { ANIMATION_VARIANTS, SPRING_CONFIGS } from "@/config/animations";
 
 /**
  * Navigation Component
@@ -50,14 +52,20 @@ export function Navigation() {
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo/Brand */}
-          <Link
-            href={user ? ROUTES.DASHBOARD : ROUTES.HOME}
-            className="flex items-center gap-2 flex-shrink-0 group"
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            transition={SPRING_CONFIGS.bouncy}
           >
-            <span className="text-lg sm:text-xl font-bold bg-gradient-primary bg-clip-text text-transparent group-hover:opacity-80 transition-opacity">
-              ✨ Todo Fusion
-            </span>
-          </Link>
+            <Link
+              href={user ? ROUTES.DASHBOARD : ROUTES.HOME}
+              className="flex items-center gap-2 flex-shrink-0 group"
+            >
+              <span className="text-lg sm:text-xl font-bold bg-gradient-primary bg-clip-text text-transparent group-hover:opacity-80 transition-opacity">
+                ✨ Todo Fusion
+              </span>
+            </Link>
+          </motion.div>
 
           {/* Desktop Navigation */}
           <DesktopUp>
@@ -69,21 +77,36 @@ export function Navigation() {
                   <span className="text-sm font-medium text-text-secondary group-hover:text-white transition-colors">
                     {user.email}
                   </span>
-                  <button
+                  <motion.button
                     onClick={logout}
                     className="btn-secondary inline-flex items-center gap-2 px-4 py-2 text-sm"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    transition={SPRING_CONFIGS.primary}
                   >
                     Logout
-                  </button>
+                  </motion.button>
                 </>
               ) : (
                 <>
-                  <Link href={ROUTES.LOGIN} className="btn-secondary text-sm">
-                    Sign In
-                  </Link>
-                  <Link href={ROUTES.REGISTER} className="btn-primary text-sm">
-                    Sign Up
-                  </Link>
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    transition={SPRING_CONFIGS.primary}
+                  >
+                    <Link href={ROUTES.LOGIN} className="btn-secondary text-sm">
+                      Sign In
+                    </Link>
+                  </motion.div>
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    transition={SPRING_CONFIGS.primary}
+                  >
+                    <Link href={ROUTES.REGISTER} className="btn-primary text-sm">
+                      Sign Up
+                    </Link>
+                  </motion.div>
                 </>
               )}
             </div>
@@ -91,11 +114,14 @@ export function Navigation() {
 
           {/* Mobile Menu Button */}
           <MobileOnly>
-            <button
+            <motion.button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="inline-flex items-center justify-center p-2 rounded-lg text-text-secondary hover:text-white hover:bg-white/10 transition-colors"
               aria-expanded={isMobileMenuOpen}
               aria-label="Toggle mobile menu"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              transition={SPRING_CONFIGS.bouncy}
             >
               {isMobileMenuOpen ? (
                 // Close icon (X)
@@ -128,22 +154,33 @@ export function Navigation() {
                   />
                 </svg>
               )}
-            </button>
+            </motion.button>
           </MobileOnly>
         </div>
       </div>
 
       {/* Mobile Menu Drawer */}
-      {isMobileMenuOpen && (
-        <>
-          {/* Overlay */}
-          <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 sm:hidden"
-            onClick={handleMenuClose}
-          />
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <>
+            {/* Overlay */}
+            <motion.div
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 sm:hidden"
+              onClick={handleMenuClose}
+              variants={ANIMATION_VARIANTS.overlayFade}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+            />
 
-          {/* Menu */}
-          <div className="sm:hidden border-t border-border bg-background-elevated/90 backdrop-blur-md shadow-glass">
+            {/* Menu */}
+            <motion.div
+              className="sm:hidden border-t border-border bg-background-elevated/90 backdrop-blur-md shadow-glass"
+              variants={ANIMATION_VARIANTS.slideInFromLeft}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+            >
             <div className="px-4 py-4 space-y-3">
               {isLoading ? (
                 <div className="h-8 w-20 animate-pulse bg-primary/20 rounded-lg" />
@@ -152,35 +189,51 @@ export function Navigation() {
                   <div className="px-4 py-2 text-sm font-medium text-text-secondary">
                     {user.email}
                   </div>
-                  <button
+                  <motion.button
                     onClick={handleLogout}
                     className="btn-secondary w-full text-left"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={SPRING_CONFIGS.primary}
                   >
                     Logout
-                  </button>
+                  </motion.button>
                 </>
               ) : (
                 <>
-                  <Link
-                    href={ROUTES.LOGIN}
-                    className="btn-secondary block w-full text-center"
-                    onClick={handleMenuClose}
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={SPRING_CONFIGS.primary}
                   >
-                    Sign In
-                  </Link>
-                  <Link
-                    href={ROUTES.REGISTER}
-                    className="btn-primary block w-full text-center"
-                    onClick={handleMenuClose}
+                    <Link
+                      href={ROUTES.LOGIN}
+                      className="btn-secondary block w-full text-center"
+                      onClick={handleMenuClose}
+                    >
+                      Sign In
+                    </Link>
+                  </motion.div>
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={SPRING_CONFIGS.primary}
                   >
-                    Sign Up
-                  </Link>
+                    <Link
+                      href={ROUTES.REGISTER}
+                      className="btn-primary block w-full text-center"
+                      onClick={handleMenuClose}
+                    >
+                      Sign Up
+                    </Link>
+                  </motion.div>
                 </>
               )}
             </div>
-          </div>
-        </>
-      )}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </nav>
   );
 }

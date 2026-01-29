@@ -1,7 +1,8 @@
 /**
  * Task: T067 | Spec: @specs/001-sdd-initialization/ui/pages.md §Task Card Component
+ * Task: T080 | Spec: @specs/001-sdd-initialization/ui/pages.md §TodoFusion Motion Design
  * Description: Task card component displaying task with status badge, actions
- * Purpose: Reusable card for displaying task in list or dashboard
+ * Purpose: Reusable card for displaying task in list or dashboard with spring animations
  * Reference: plan.md Step 5 §Key Design Pattern, Constitution III (User Isolation)
  */
 
@@ -9,8 +10,10 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
 import { TASK_STATUS, TASK_STATUS_COLORS } from '@/config/constants';
+import { ANIMATION_VARIANTS, SPRING_CONFIGS } from '@/config/animations';
 
 interface Task {
   id: string;
@@ -80,10 +83,21 @@ export default function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
   };
 
   return (
-    <div className="card-interactive group">
+    <motion.div
+      className="card-interactive group"
+      variants={ANIMATION_VARIANTS.cardHover}
+      initial="rest"
+      whileHover="hover"
+      whileTap="tap"
+    >
       <div className="flex gap-4">
         {/* Checkbox */}
-        <div className="flex items-center pt-1">
+        <motion.div
+          className="flex items-center pt-1"
+          whileTap="active"
+          variants={ANIMATION_VARIANTS.scaleBounce}
+          initial="rest"
+        >
           <input
             type="checkbox"
             checked={isChecked}
@@ -91,7 +105,7 @@ export default function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
             className="w-5 h-5 bg-background-surface/50 border border-primary/30 rounded cursor-pointer accent-primary"
             aria-label={`Mark task "${task.title}" as complete`}
           />
-        </div>
+        </motion.div>
 
         {/* Task Content */}
         <div className="flex-1 min-w-0">
@@ -127,24 +141,38 @@ export default function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
         </div>
 
         {/* Actions */}
-        <div className="flex gap-2 items-start opacity-0 group-hover:opacity-100 transition-opacity">
-          <Link
-            href={`/dashboard/tasks/${task.id}`}
-            className="btn-ghost text-xs py-1 px-2"
-            title="Edit task"
+        <motion.div
+          className="flex gap-2 items-start opacity-0 group-hover:opacity-100 transition-opacity"
+          initial={{ opacity: 0, x: 10 }}
+          whileHover={{ opacity: 1, x: 0 }}
+          transition={SPRING_CONFIGS.smooth}
+        >
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            transition={SPRING_CONFIGS.primary}
           >
-            Edit
-          </Link>
-          <button
+            <Link
+              href={`/dashboard/tasks/${task.id}`}
+              className="btn-ghost text-xs py-1 px-2"
+              title="Edit task"
+            >
+              Edit
+            </Link>
+          </motion.div>
+          <motion.button
             onClick={handleDelete}
             disabled={isDeleting}
             className="btn-ghost text-xs py-1 px-2 text-error hover:text-error-light"
             title="Delete task"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            transition={SPRING_CONFIGS.primary}
           >
             {isDeleting ? 'Deleting...' : 'Delete'}
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }

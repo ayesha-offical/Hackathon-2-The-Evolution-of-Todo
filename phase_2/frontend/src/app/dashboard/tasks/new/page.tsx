@@ -72,8 +72,6 @@ export default function CreateTaskPage() {
         throw new Error(errorData.detail || 'Failed to create task');
       }
 
-      const _createdTask: Task = await response.json();
-
       // Show success message
       setSuccess('Task created successfully!');
 

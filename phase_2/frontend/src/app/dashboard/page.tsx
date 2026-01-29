@@ -8,10 +8,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiCall } from "@/lib/api";
 import type { Task, TaskCreate } from "@/types/task";
 import { TaskStatus } from "@/types/task";
+import { ANIMATION_VARIANTS, SPRING_CONFIGS } from "@/config/animations";
 
 /**
  * Dashboard page component
@@ -198,22 +200,35 @@ export default function DashboardPage() {
         </div>
 
         {/* Error Alert - Responsive */}
-        {error && (
-          <div className="mb-6 alert alert-error">
-            <p className="text-xs sm:text-sm font-medium">
-              {error}
-            </p>
-            <button
-              onClick={() => setError(null)}
-              className="mt-2 text-xs sm:text-sm text-error-light hover:text-error underline"
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              className="mb-6 alert alert-error"
+              variants={ANIMATION_VARIANTS.slideInFromRight}
+              initial="hidden"
+              animate="visible"
+              exit={{ opacity: 0, x: 100 }}
             >
-              Dismiss
-            </button>
-          </div>
-        )}
+              <p className="text-xs sm:text-sm font-medium">
+                {error}
+              </p>
+              <button
+                onClick={() => setError(null)}
+                className="mt-2 text-xs sm:text-sm text-error-light hover:text-error underline"
+              >
+                Dismiss
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Create Task Form - Responsive */}
-        <div className="card mb-8">
+        <motion.div
+          className="card mb-8"
+          variants={ANIMATION_VARIANTS.appear}
+          initial="hidden"
+          animate="visible"
+        >
           <div className="p-4 sm:p-6">
             <h2 className="text-lg sm:text-xl font-semibold text-text-primary mb-4">
               Create New Task
@@ -252,16 +267,19 @@ export default function DashboardPage() {
                 />
               </div>
 
-              <button
+              <motion.button
                 type="submit"
                 disabled={isCreating || !newTaskTitle.trim()}
                 className="btn-primary w-full text-sm sm:text-base"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                transition={SPRING_CONFIGS.primary}
               >
                 {isCreating ? "Creating..." : "Create Task"}
-              </button>
+              </motion.button>
             </form>
           </div>
-        </div>
+        </motion.div>
 
         {/* Task List - Responsive Grid */}
         <div className="card">
@@ -281,12 +299,23 @@ export default function DashboardPage() {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-4 sm:gap-5 lg:gap-6">
-                {tasks.map((task) => (
-                  <div
-                    key={task.id}
-                    className="card-interactive group"
-                  >
+              <AnimatePresence mode="popLayout">
+                <motion.div
+                  className="grid grid-cols-1 gap-4 sm:gap-5 lg:gap-6"
+                  variants={ANIMATION_VARIANTS.listContainer}
+                  initial="hidden"
+                  animate="visible"
+                >
+                  {tasks.map((task) => (
+                    <motion.div
+                      key={task.id}
+                      className="card-interactive group"
+                      variants={ANIMATION_VARIANTS.listItem}
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
+                      layout
+                    >
                     <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4 p-3 sm:p-4">
                       {/* Checkbox */}
                       <input
@@ -331,16 +360,20 @@ export default function DashboardPage() {
                       </div>
 
                       {/* Delete Button */}
-                      <button
+                      <motion.button
                         onClick={() => handleDeleteTask(task.id)}
                         className="btn-ghost text-xs sm:text-sm px-3 py-1 text-error hover:text-error-light opacity-0 group-hover:opacity-100 transition-opacity w-full sm:w-auto"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        transition={SPRING_CONFIGS.primary}
                       >
                         Delete
-                      </button>
+                      </motion.button>
                     </div>
-                  </div>
-                ))}
-              </div>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              </AnimatePresence>
             )}
           </div>
         </div>

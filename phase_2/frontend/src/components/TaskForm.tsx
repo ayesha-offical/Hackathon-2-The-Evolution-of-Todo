@@ -1,14 +1,17 @@
 /**
  * Task: T068 | Spec: @specs/001-sdd-initialization/ui/pages.md §Create Task & Edit Task Pages
+ * Task: T080 | Spec: @specs/001-sdd-initialization/ui/pages.md §TodoFusion Motion Design
  * Description: Reusable form for creating and editing tasks
- * Purpose: Single source of truth for task form validation and submission
+ * Purpose: Single source of truth for task form validation and submission with spring animations
  * Reference: plan.md Step 5 §Key Design Pattern
  */
 
 'use client';
 
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { TASK_STATUS, TASK_VALIDATION } from '@/config/constants';
+import { ANIMATION_VARIANTS, SPRING_CONFIGS } from '@/config/animations';
 
 interface Task {
   id?: string;
@@ -139,16 +142,31 @@ export default function TaskForm({
     !formData.title || isLoading || Object.keys(errors).length > 0;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <motion.form
+      onSubmit={handleSubmit}
+      className="space-y-6"
+      variants={ANIMATION_VARIANTS.listContainer}
+      initial="hidden"
+      animate="visible"
+    >
       {/* Submit Error */}
       {errors.submit && (
-        <div className="alert alert-error">
+        <motion.div
+          className="alert alert-error"
+          variants={ANIMATION_VARIANTS.listItem}
+          initial="hidden"
+          animate="visible"
+        >
           <p className="text-sm">{errors.submit}</p>
-        </div>
+        </motion.div>
       )}
 
       {/* Title Field */}
-      <div>
+      <motion.div
+        variants={ANIMATION_VARIANTS.listItem}
+        initial="hidden"
+        animate="visible"
+      >
         <label htmlFor="title" className="label">
           Task Title <span className="label-required">*</span>
         </label>
@@ -183,10 +201,14 @@ export default function TaskForm({
             {formData.title.length} / {TASK_VALIDATION.TITLE_MAX_LENGTH}
           </span>
         </div>
-      </div>
+      </motion.div>
 
       {/* Description Field */}
-      <div>
+      <motion.div
+        variants={ANIMATION_VARIANTS.listItem}
+        initial="hidden"
+        animate="visible"
+      >
         <label htmlFor="description" className="label">
           Description
         </label>
@@ -220,10 +242,14 @@ export default function TaskForm({
             {TASK_VALIDATION.DESCRIPTION_MAX_LENGTH}
           </span>
         </div>
-      </div>
+      </motion.div>
 
       {/* Status Field */}
-      <div>
+      <motion.div
+        variants={ANIMATION_VARIANTS.listItem}
+        initial="hidden"
+        animate="visible"
+      >
         <label htmlFor="status" className="label">
           Status
         </label>
@@ -243,22 +269,33 @@ export default function TaskForm({
           <option value={TASK_STATUS.COMPLETED}>{TASK_STATUS.COMPLETED}</option>
           <option value={TASK_STATUS.ARCHIVED}>{TASK_STATUS.ARCHIVED}</option>
         </select>
-      </div>
+      </motion.div>
 
       {/* Action Buttons */}
-      <div className="flex gap-4 justify-end pt-6 border-t border-border">
-        <button
+      <motion.div
+        className="flex gap-4 justify-end pt-6 border-t border-border"
+        variants={ANIMATION_VARIANTS.listItem}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.button
           type="button"
           onClick={onCancel}
           disabled={isLoading}
           className="btn-secondary"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          transition={SPRING_CONFIGS.primary}
         >
           Cancel
-        </button>
-        <button
+        </motion.button>
+        <motion.button
           type="submit"
           disabled={isSubmitDisabled}
           className="btn-primary"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          transition={SPRING_CONFIGS.primary}
         >
           {isLoading ? (
             <span className="flex items-center gap-2">
@@ -282,8 +319,8 @@ export default function TaskForm({
           ) : (
             'Create Task'
           )}
-        </button>
-      </div>
-    </form>
+        </motion.button>
+      </motion.div>
+    </motion.form>
   );
 }

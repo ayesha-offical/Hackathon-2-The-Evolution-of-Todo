@@ -65,14 +65,14 @@
 
   /* Button reset */
   button {
-    @apply font-inherit;
+    font-family: inherit;
   }
 
   /* Input reset */
   input,
   textarea,
   select {
-    @apply font-inherit;
+    font-family: inherit;
   }
 }
 
