@@ -22,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="scroll-smooth">
+    <html lang="en" className="scroll-smooth" data-scroll-behavior="smooth">
       <body className="bg-white text-gray-900 dark:bg-gray-900 dark:text-white">
         <RootLayoutClient>{children}</RootLayoutClient>
       </body>

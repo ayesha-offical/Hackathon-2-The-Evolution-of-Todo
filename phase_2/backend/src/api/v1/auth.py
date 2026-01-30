@@ -5,7 +5,7 @@
 
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Response
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response
 from jose import jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -137,6 +137,7 @@ async def better_auth_sign_in(
     description="Get current session (Better Auth compatible)",
 )
 async def better_auth_get_session(
+    request: Request,  # Inject FastAPI Request object to access cookies
     session: AsyncSession = Depends(get_db_session),
     authorization: Optional[str] = Header(None),
 ) -> dict:
@@ -152,9 +153,21 @@ async def better_auth_get_session(
         if authorization and authorization.startswith("Bearer "):
             token = authorization[len("Bearer "):].strip()
 
-        # If no token in header, return empty session (cookies will be sent automatically by browser)
+        # If no token in header, check cookies (Constitution II - HTTP-only cookies)
         if not token:
-            return {"user": None, "session": None}
+            # Try to get from Authorization cookie set by login endpoint
+            # The cookie value is "Bearer <token>"
+            try:
+                auth_cookie = request.cookies.get('Authorization')
+                if auth_cookie and auth_cookie.startswith("Bearer "):
+                    token = auth_cookie[len("Bearer "):].strip()
+            except (AttributeError, TypeError):
+                # Request object might not have cookies in some contexts
+                pass
+
+            # If still no token, return empty session
+            if not token:
+                return {"user": None, "session": None}
 
         settings = get_settings()
 
