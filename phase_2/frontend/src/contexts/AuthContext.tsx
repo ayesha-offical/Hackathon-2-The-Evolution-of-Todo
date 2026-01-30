@@ -123,7 +123,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         sessionStorage.removeItem('auth_token');
       }
 
-      // Call logout endpoint
+      // Call logout endpoint to clear HTTP-only cookies
       try {
         await apiCall("/api/v1/auth/logout", { method: "POST" });
       } catch {
@@ -134,6 +134,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null);
       setIsError(false);
       setError(null);
+
+      // Add small delay to ensure Set-Cookie response is processed by browser
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       // Redirect to login
       router.push(ROUTES.LOGIN);

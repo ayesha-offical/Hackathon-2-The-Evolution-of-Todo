@@ -493,9 +493,21 @@ async def logout(
         # Commit transaction
         await session.commit()
 
-        # Clear cookies
-        response.delete_cookie("Authorization")
-        response.delete_cookie("RefreshToken")
+        # Clear cookies with matching parameters to ensure proper deletion
+        response.delete_cookie(
+            "Authorization",
+            httponly=True,
+            secure=False,
+            samesite="lax",
+            path="/",
+        )
+        response.delete_cookie(
+            "RefreshToken",
+            httponly=True,
+            secure=False,
+            samesite="lax",
+            path="/",
+        )
 
         return {"message": "Logged out successfully"}
 
