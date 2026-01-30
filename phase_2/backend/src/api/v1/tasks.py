@@ -67,13 +67,19 @@ async def create_task(
             description=task_data.description,
             status=task_data.status,
         )
-        await session.commit()
+        # Commit and refresh to ensure all fields are populated (timestamps, etc.)
+        await session.flush()  # Flush to DB but don't commit yet
+        await session.refresh(task)  # Refresh from DB to get all generated values
+        await session.commit()  # Now commit the transaction
         return TaskResponse.model_validate(task)
     except ValueError as e:
         await session.rollback()
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         await session.rollback()
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Task creation error for user {user_id}: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to create task")
 
 

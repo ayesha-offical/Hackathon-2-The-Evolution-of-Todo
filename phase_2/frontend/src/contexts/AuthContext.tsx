@@ -62,11 +62,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   /**
    * Verify current session status
    * Called on mount and can be called manually to refresh
-   * Uses direct API call to ensure JWT token is properly sent with credentials
+   * Uses direct API call to ensure JWT token is properly sent with credentials (HTTP-only cookies included via credentials: 'include')
+   * Constitution II: JWT tokens are stored in HTTP-only cookies and automatically sent by fetch API
    */
   async function checkSession() {
     try {
-      const response = await apiCall("/api/v1/auth/get-session");
+      // Call get-session endpoint with credentials to include HTTP-only cookies
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'}/api/v1/auth/get-session`, {
+        method: 'GET',
+        credentials: 'include', // CRITICAL: Include HTTP-only cookies in request
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
       if (!response.ok) {
         setUser(null);
@@ -95,6 +103,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       // Session check failed (network error, JWT expired, etc.)
       // User is not authenticated
+      console.debug('[Auth] Session check error:', error);
       setUser(null);
       setIsError(false);
       setError(null);

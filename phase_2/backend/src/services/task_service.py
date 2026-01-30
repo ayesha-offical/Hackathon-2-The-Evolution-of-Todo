@@ -108,13 +108,13 @@ class TaskService:
         if status:
             count_stmt = count_stmt.where(Task.status == status)
 
-        count_result = self.session.execute(count_stmt)
+        count_result = await self.session.execute(count_stmt)
         total = len(count_result.fetchall())
 
         # Order by created_at descending and apply pagination
         stmt = stmt.order_by(desc(Task.created_at)).offset(offset).limit(limit)
 
-        result = self.session.execute(stmt)
+        result = await self.session.execute(stmt)
         tasks = result.scalars().all()
 
         return tasks, total
@@ -136,7 +136,7 @@ class TaskService:
         # Query with both task_id and user_id (Constitution III - defense in depth)
         stmt = select(Task).where(Task.id == task_id, Task.user_id == user_id)
 
-        result = self.session.execute(stmt)
+        result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
     async def update_task(
@@ -159,7 +159,7 @@ class TaskService:
         # Query with user_id check first (Constitution III - CRITICAL)
         stmt = select(Task).where(Task.id == task_id, Task.user_id == user_id)
 
-        result = self.session.execute(stmt)
+        result = await self.session.execute(stmt)
         task = result.scalar_one_or_none()
 
         if not task:
@@ -204,7 +204,7 @@ class TaskService:
         # Query with user_id check first (Constitution III - CRITICAL)
         stmt = select(Task).where(Task.id == task_id, Task.user_id == user_id)
 
-        result = self.session.execute(stmt)
+        result = await self.session.execute(stmt)
         task = result.scalar_one_or_none()
 
         if not task:

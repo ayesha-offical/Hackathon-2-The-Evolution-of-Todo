@@ -33,22 +33,25 @@ export interface User {
 
 /**
  * Pagination Interface
- * Standard pagination response structure
+ * Standard pagination response structure from backend API
+ * Constitution III: Matches backend TaskListResponse from src/schemas/task.py
  */
 export interface Pagination {
-  page: number;
-  limit: number;
   total: number;
-  total_pages: number;
+  offset: number;
+  limit: number;
 }
 
 /**
  * Paginated Response Interface
  * Wrapper for paginated API responses
+ * Matches backend format: { data: T[], total: number, offset: number, limit: number }
  */
 export interface PaginatedResponse<T> {
   data: T[];
-  pagination: Pagination;
+  total: number;
+  offset: number;
+  limit: number;
 }
 
 /**

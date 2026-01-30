@@ -161,8 +161,9 @@ async def health_check():
     try:
         # Check database connection
         from src.db.engine import engine
+        from sqlalchemy import text
         async with engine.connect() as conn:
-            await conn.execute("SELECT 1")
+            await conn.execute(text("SELECT 1"))
 
         return {
             "status": "healthy",

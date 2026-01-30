@@ -80,6 +80,8 @@ export default function LoginPage() {
   /**
    * Handle form submission
    * Call Better Auth signIn method with email and password
+   * Constitution II: JWT tokens are set as HTTP-only cookies by the backend,
+   * and then retrieved via the /get-session endpoint on subsequent requests
    */
   async function onSubmit(data: LoginFormData) {
     try {
@@ -87,28 +89,22 @@ export default function LoginPage() {
       setIsSubmitting(true);
 
       // Use Better Auth to sign in
-      // This sends request to /api/v1/auth/login and stores JWT in HTTP-only cookie
+      // This sends request to /api/v1/auth/login and the backend sets JWT in HTTP-only cookie
       const result = (await authClient.signIn.email({
         email: data.email,
         password: data.password,
       })) as unknown as BetterAuthSignInResponse;
 
       if (result && (result.user || result.data?.user)) {
-        // Store token for Authorization header if returned in response
-        const token = result.token || result.data?.token;
-        if (token) {
-          // Store in sessionStorage for JWT bearer token injection
-          sessionStorage.setItem('auth_token', token);
-        }
-
-        // Login successful, refresh session to update AuthContext
-        // This ensures the user state is updated before redirecting to dashboard
+        // Login successful - HTTP-only cookies are now set by the backend
+        // Refresh session to update AuthContext with user data
+        // This uses credentials: 'include' to automatically send the HTTP-only cookies
         await refreshSession();
 
-        // Small delay ensures the browser processes the HTTP-only cookie
+        // Small delay ensures the browser processes the HTTP-only cookie and state updates
         setTimeout(() => {
           router.push(ROUTES.DASHBOARD);
-        }, 300);
+        }, 500); // Increased from 300ms to ensure state propagates
       } else {
         setSubmitError(ERROR_MESSAGES.INVALID_CREDENTIALS);
       }

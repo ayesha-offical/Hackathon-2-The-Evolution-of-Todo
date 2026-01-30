@@ -50,13 +50,11 @@ export interface TaskUpdate {
 
 /**
  * Task list API response with pagination
+ * Constitution III: Matches backend TaskListResponse schema from src/schemas/task.py
  */
 export interface TaskListResponse {
   data: Task[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    pages: number;
-  };
+  total: number;
+  offset: number;
+  limit: number;
 }
