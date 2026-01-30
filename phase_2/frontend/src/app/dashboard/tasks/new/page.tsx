@@ -1,6 +1,7 @@
 /**
  * Task: T071 | Spec: @specs/001-sdd-initialization/ui/pages.md §Create Task Page
- * Description: Page for creating new tasks
+ * Task: T080 | Spec: @specs/001-sdd-initialization/ui/pages.md §TodoFusion Motion Design
+ * Description: Page for creating new tasks with spring animations
  * Purpose: Allow users to create new tasks with title, description, and status
  * Reference: plan.md Step 5, Constitution III (User Isolation)
  */
@@ -10,10 +11,12 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
 import TaskForm from '@/components/TaskForm';
 import { ErrorAlert, SuccessToast, AlertContainer } from '@/components/common/Alert';
 import { apiCall } from '@/lib/api';
 import { ROUTES, TASK_STATUS } from '@/config/constants';
+import { ANIMATION_VARIANTS, SPRING_CONFIGS } from '@/config/animations';
 import type { Task, ErrorResponse } from '@/types';
 
 /**
@@ -95,64 +98,136 @@ export default function CreateTaskPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-
+    <motion.div
+      className="min-h-screen bg-gray-50"
+      variants={ANIMATION_VARIANTS.appear}
+      initial="hidden"
+      animate="visible"
+    >
       {/* Main Content */}
       <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
-        <div className="mb-8">
+        <motion.div
+          className="mb-8"
+          variants={ANIMATION_VARIANTS.listContainer}
+          initial="hidden"
+          animate="visible"
+        >
           {/* Back Link */}
-          <Link
-            href={ROUTES.DASHBOARD}
-            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium mb-4"
+          <motion.div
+            variants={ANIMATION_VARIANTS.listItem}
+            initial="hidden"
+            animate="visible"
           >
-            ← Back to Tasks
-          </Link>
+            <Link
+              href={ROUTES.DASHBOARD}
+              className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium mb-4 transition-colors"
+            >
+              ← Back to Tasks
+            </Link>
+          </motion.div>
 
-          <h1 className="text-3xl font-bold text-gray-900">Create New Task</h1>
-          <p className="text-gray-600 mt-2">
+          <motion.h1
+            className="text-3xl font-bold text-gray-900"
+            variants={ANIMATION_VARIANTS.listItem}
+            initial="hidden"
+            animate="visible"
+          >
+            Create New Task
+          </motion.h1>
+          <motion.p
+            className="text-gray-600 mt-2"
+            variants={ANIMATION_VARIANTS.listItem}
+            initial="hidden"
+            animate="visible"
+          >
             Add a new task to your list. Fill in the title and optionally add a description.
-          </p>
-        </div>
+          </motion.p>
+        </motion.div>
 
         {/* Alerts */}
         <AlertContainer>
-          {error && (
-            <ErrorAlert
-              message={error}
-              onClose={() => setError(null)}
-            />
-          )}
-          {success && (
-            <SuccessToast
-              message={success}
-              onClose={() => setSuccess(null)}
-            />
-          )}
+          <AnimatePresence mode="wait">
+            {error && (
+              <motion.div
+                key="error"
+                variants={ANIMATION_VARIANTS.slideInFromRight}
+                initial="hidden"
+                animate="visible"
+                exit="hidden"
+              >
+                <ErrorAlert
+                  message={error}
+                  onClose={() => setError(null)}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <AnimatePresence mode="wait">
+            {success && (
+              <motion.div
+                key="success"
+                variants={ANIMATION_VARIANTS.slideInFromRight}
+                initial="hidden"
+                animate="visible"
+                exit="hidden"
+              >
+                <SuccessToast
+                  message={success}
+                  onClose={() => setSuccess(null)}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </AlertContainer>
 
         {/* Task Form */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <motion.div
+          className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+          variants={ANIMATION_VARIANTS.listItem}
+          initial="hidden"
+          animate="visible"
+        >
           <TaskForm
             task={undefined} // New task - no initial data
             onSubmit={handleSubmit}
             onCancel={handleCancel}
             isLoading={isLoading}
           />
-        </div>
+        </motion.div>
 
         {/* Form Help Text */}
-        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <motion.div
+          className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4"
+          variants={ANIMATION_VARIANTS.listItem}
+          initial="hidden"
+          animate="visible"
+        >
           <h3 className="text-sm font-medium text-blue-900 mb-2">Tips for creating tasks</h3>
-          <ul className="text-sm text-blue-800 space-y-1">
-            <li>• Use clear, descriptive titles (1-255 characters)</li>
-            <li>• Add details in the description if needed (0-2000 characters)</li>
-            <li>• Set an initial status (defaults to Pending)</li>
-            <li>• You can edit the task anytime after creation</li>
-          </ul>
-        </div>
+          <motion.ul
+            className="text-sm text-blue-800 space-y-1"
+            variants={ANIMATION_VARIANTS.listContainer}
+            initial="hidden"
+            animate="visible"
+          >
+            {[
+              'Use clear, descriptive titles (1-255 characters)',
+              'Add details in the description if needed (0-2000 characters)',
+              'Set an initial status (defaults to Pending)',
+              'You can edit the task anytime after creation'
+            ].map((tip, i) => (
+              <motion.li
+                key={i}
+                variants={ANIMATION_VARIANTS.listItem}
+                initial="hidden"
+                animate="visible"
+              >
+                • {tip}
+              </motion.li>
+            ))}
+          </motion.ul>
+        </motion.div>
       </main>
-    </div>
+    </motion.div>
   );
 }

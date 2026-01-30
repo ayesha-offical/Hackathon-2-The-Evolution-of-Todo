@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { ANIMATION_VARIANTS, SPRING_CONFIGS } from '@/config/animations';
+import { ANIMATION_VARIANTS } from '@/config/animations';
 
 export default function Home() {
   return (

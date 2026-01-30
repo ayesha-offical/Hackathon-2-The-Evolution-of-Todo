@@ -12,7 +12,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
-import { TASK_STATUS, TASK_STATUS_COLORS } from '@/config/constants';
+import { TASK_STATUS } from '@/config/constants';
 import { ANIMATION_VARIANTS, SPRING_CONFIGS } from '@/config/animations';
 
 interface Task {

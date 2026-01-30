@@ -87,7 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // User is not authenticated
         setUser(null);
       }
-    } catch (err) {
+    } catch {
       // Session check failed (network error, etc.) - this is okay, user is just not authenticated
       setIsError(false);
       setError(null);

@@ -12,7 +12,9 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ROUTES, ERROR_MESSAGES, EMAIL_REGEX } from "@/config/constants";
+import { motion, AnimatePresence } from "framer-motion";
+import { ROUTES, EMAIL_REGEX } from "@/config/constants";
+import { ANIMATION_VARIANTS, SPRING_CONFIGS } from "@/config/animations";
 import { apiPost } from "@/lib/api";
 
 /**
@@ -87,109 +89,169 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8">
+    <motion.div
+      className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8"
+      variants={ANIMATION_VARIANTS.appear}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div
+        className="w-full max-w-md space-y-8"
+        variants={ANIMATION_VARIANTS.listContainer}
+        initial="hidden"
+        animate="visible"
+      >
         {/* Header */}
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+        <motion.div className="text-center" variants={ANIMATION_VARIANTS.listItem}>
+          <motion.h1
+            className="text-3xl font-bold text-gray-900 dark:text-white"
+            variants={ANIMATION_VARIANTS.listItem}
+          >
             Phase 2 Todo App
-          </h1>
-          <h2 className="mt-6 text-2xl font-bold text-gray-900 dark:text-white">
+          </motion.h1>
+          <motion.h2
+            className="mt-6 text-2xl font-bold text-gray-900 dark:text-white"
+            variants={ANIMATION_VARIANTS.listItem}
+          >
             Reset your password
-          </h2>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          </motion.h2>
+          <motion.p
+            className="mt-2 text-sm text-gray-600 dark:text-gray-400"
+            variants={ANIMATION_VARIANTS.listItem}
+          >
             Enter your email address and we&apos;ll send you a link to reset your password.
-          </p>
-        </div>
+          </motion.p>
+        </motion.div>
 
         {/* Success message */}
-        {successMessage && (
-          <div className="rounded-md bg-green-50 dark:bg-green-900/20 p-4 border border-green-200 dark:border-green-800">
-            <p className="text-sm font-medium text-green-800 dark:text-green-200">
-              {successMessage}
-            </p>
-            <p className="text-xs text-green-700 dark:text-green-300 mt-2">
-              Back to{" "}
-              <Link
-                href={ROUTES.LOGIN}
-                className="font-medium text-green-600 dark:text-green-400 hover:underline"
-              >
-                sign in
-              </Link>
-            </p>
-          </div>
-        )}
+        <AnimatePresence mode="wait">
+          {successMessage && (
+            <motion.div
+              className="rounded-md bg-green-50 dark:bg-green-900/20 p-4 border border-green-200 dark:border-green-800"
+              variants={ANIMATION_VARIANTS.slideInFromRight}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+            >
+              <p className="text-sm font-medium text-green-800 dark:text-green-200">
+                {successMessage}
+              </p>
+              <p className="text-xs text-green-700 dark:text-green-300 mt-2">
+                Back to{" "}
+                <Link
+                  href={ROUTES.LOGIN}
+                  className="font-medium text-green-600 dark:text-green-400 hover:underline"
+                >
+                  sign in
+                </Link>
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Form */}
-        {!successMessage && (
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-            {/* Error alert */}
-            {submitError && (
-              <div className="rounded-md bg-red-50 dark:bg-red-900/20 p-4 border border-red-200 dark:border-red-800">
-                <p className="text-sm font-medium text-red-800 dark:text-red-200">
-                  {submitError}
-                </p>
-              </div>
-            )}
-
-            {/* Email field */}
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Email address
-              </label>
-              <input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                {...register("email")}
-                className="input mt-1"
-                disabled={isSubmitting}
-              />
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
-
-            {/* Submit button */}
-            <button
-              type="submit"
-              disabled={!isValid || isSubmitting}
-              className="btn-primary w-full mt-4"
+        <AnimatePresence mode="wait">
+          {!successMessage && (
+            <motion.form
+              className="mt-8 space-y-6"
+              onSubmit={handleSubmit(onSubmit)}
+              variants={ANIMATION_VARIANTS.listContainer}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
             >
-              {isSubmitting ? "Sending..." : "Send reset link"}
-            </button>
-          </form>
-        )}
+              {/* Error alert */}
+              <AnimatePresence mode="wait">
+                {submitError && (
+                  <motion.div
+                    className="rounded-md bg-red-50 dark:bg-red-900/20 p-4 border border-red-200 dark:border-red-800"
+                    variants={ANIMATION_VARIANTS.slideInFromRight}
+                    initial="hidden"
+                    animate="visible"
+                    exit="hidden"
+                  >
+                    <p className="text-sm font-medium text-red-800 dark:text-red-200">
+                      {submitError}
+                    </p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Email field */}
+              <motion.div variants={ANIMATION_VARIANTS.listItem}>
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Email address
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  {...register("email")}
+                  className="input mt-1"
+                  disabled={isSubmitting}
+                />
+                {errors.email && (
+                  <motion.p
+                    className="mt-1 text-sm text-red-600 dark:text-red-400"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={SPRING_CONFIGS.gentle}
+                  >
+                    {errors.email.message}
+                  </motion.p>
+                )}
+              </motion.div>
+
+              {/* Submit button */}
+              <motion.button
+                type="submit"
+                disabled={!isValid || isSubmitting}
+                className="btn-primary w-full mt-4"
+                variants={ANIMATION_VARIANTS.buttonTap}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                transition={SPRING_CONFIGS.primary}
+              >
+                {isSubmitting ? "Sending..." : "Send reset link"}
+              </motion.button>
+            </motion.form>
+          )}
+        </AnimatePresence>
 
         {/* Footer links */}
-        {!successMessage && (
-          <div className="text-center space-y-2">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Remember your password?{" "}
-              <Link
-                href={ROUTES.LOGIN}
-                className="font-medium text-blue-600 hover:text-blue-500"
-              >
-                Sign in
-              </Link>
-            </p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Don&apos;t have an account?{" "}
-              <Link
-                href={ROUTES.REGISTER}
-                className="font-medium text-blue-600 hover:text-blue-500"
-              >
-                Sign up
-              </Link>
-            </p>
-          </div>
-        )}
-      </div>
-    </div>
+        <AnimatePresence>
+          {!successMessage && (
+            <motion.div
+              className="text-center space-y-2"
+              variants={ANIMATION_VARIANTS.listItem}
+              initial="hidden"
+              animate="visible"
+            >
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Remember your password?{" "}
+                <Link
+                  href={ROUTES.LOGIN}
+                  className="font-medium text-blue-600 hover:text-blue-500"
+                >
+                  Sign in
+                </Link>
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Don&apos;t have an account?{" "}
+                <Link
+                  href={ROUTES.REGISTER}
+                  className="font-medium text-blue-600 hover:text-blue-500"
+                >
+                  Sign up
+                </Link>
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    </motion.div>
   );
 }

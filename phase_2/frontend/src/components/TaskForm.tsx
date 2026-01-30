@@ -8,7 +8,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { TASK_STATUS, TASK_VALIDATION } from '@/config/constants';
 import { ANIMATION_VARIANTS, SPRING_CONFIGS } from '@/config/animations';

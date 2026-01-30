@@ -13,10 +13,12 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import { authClient } from "@/lib/auth";
 import { useAuth } from "@/contexts/AuthContext";
 import { ROUTES, ERROR_MESSAGES, EMAIL_REGEX } from "@/config/constants";
 import { PasswordInput } from "@/components/common/PasswordInput";
+import { ANIMATION_VARIANTS, SPRING_CONFIGS } from "@/config/animations";
 import type { BetterAuthSignInResponse } from "@/types/auth";
 
 /**
@@ -93,7 +95,7 @@ export default function LoginPage() {
 
       if (result && (result.user || result.data?.user)) {
         // Store token for Authorization header if returned in response
-        const token = result.token || result.data?.token;
+        const token = result.session?.token || result.data?.session?.token;
         if (token) {
           // Store in sessionStorage for JWT bearer token injection
           sessionStorage.setItem('auth_token', token);
@@ -121,17 +123,36 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8">
+    <motion.div
+      className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8"
+      variants={ANIMATION_VARIANTS.appear}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div
+        className="w-full max-w-md space-y-8"
+        variants={ANIMATION_VARIANTS.listContainer}
+        initial="hidden"
+        animate="visible"
+      >
         {/* Header */}
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+        <motion.div className="text-center" variants={ANIMATION_VARIANTS.listItem}>
+          <motion.h1
+            className="text-3xl font-bold text-gray-900 dark:text-white"
+            variants={ANIMATION_VARIANTS.listItem}
+          >
             Phase 2 Todo App
-          </h1>
-          <h2 className="mt-6 text-2xl font-bold text-gray-900 dark:text-white">
+          </motion.h1>
+          <motion.h2
+            className="mt-6 text-2xl font-bold text-gray-900 dark:text-white"
+            variants={ANIMATION_VARIANTS.listItem}
+          >
             Sign in to your account
-          </h2>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          </motion.h2>
+          <motion.p
+            className="mt-2 text-sm text-gray-600 dark:text-gray-400"
+            variants={ANIMATION_VARIANTS.listItem}
+          >
             Or{" "}
             <Link
               href={ROUTES.REGISTER}
@@ -139,22 +160,36 @@ export default function LoginPage() {
             >
               create a new account
             </Link>
-          </p>
-        </div>
+          </motion.p>
+        </motion.div>
 
         {/* Form */}
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
+        <motion.form
+          className="mt-8 space-y-6"
+          onSubmit={handleSubmit(onSubmit)}
+          variants={ANIMATION_VARIANTS.listContainer}
+          initial="hidden"
+          animate="visible"
+        >
           {/* Error alert */}
-          {submitError && (
-            <div className="rounded-md bg-red-50 dark:bg-red-900/20 p-4 border border-red-200 dark:border-red-800">
-              <p className="text-sm font-medium text-red-800 dark:text-red-200">
-                {submitError}
-              </p>
-            </div>
-          )}
+          <AnimatePresence mode="wait">
+            {submitError && (
+              <motion.div
+                className="rounded-md bg-red-50 dark:bg-red-900/20 p-4 border border-red-200 dark:border-red-800"
+                variants={ANIMATION_VARIANTS.slideInFromRight}
+                initial="hidden"
+                animate="visible"
+                exit="hidden"
+              >
+                <p className="text-sm font-medium text-red-800 dark:text-red-200">
+                  {submitError}
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Email field */}
-          <div>
+          <motion.div variants={ANIMATION_VARIANTS.listItem}>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Email address
             </label>
@@ -167,14 +202,19 @@ export default function LoginPage() {
               disabled={isSubmitting}
             />
             {errors.email && (
-              <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+              <motion.p
+                className="mt-1 text-sm text-red-600 dark:text-red-400"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={SPRING_CONFIGS.gentle}
+              >
                 {errors.email.message}
-              </p>
+              </motion.p>
             )}
-          </div>
+          </motion.div>
 
           {/* Password field */}
-          <div>
+          <motion.div variants={ANIMATION_VARIANTS.listItem}>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Password
             </label>
@@ -186,24 +226,33 @@ export default function LoginPage() {
               className="mt-1"
             />
             {errors.password && (
-              <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+              <motion.p
+                className="mt-1 text-sm text-red-600 dark:text-red-400"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={SPRING_CONFIGS.gentle}
+              >
                 {errors.password.message}
-              </p>
+              </motion.p>
             )}
-          </div>
+          </motion.div>
 
           {/* Submit button */}
-          <button
+          <motion.button
             type="submit"
             disabled={!isValid || isSubmitting}
             className="btn-primary w-full mt-4"
+            variants={ANIMATION_VARIANTS.buttonTap}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            transition={SPRING_CONFIGS.primary}
           >
             {isSubmitting ? "Signing in..." : "Sign in"}
-          </button>
-        </form>
+          </motion.button>
+        </motion.form>
 
         {/* Footer links */}
-        <div className="text-center space-y-2">
+        <motion.div className="text-center space-y-2" variants={ANIMATION_VARIANTS.listItem}>
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Forgot your password?{" "}
             <Link
@@ -216,8 +265,8 @@ export default function LoginPage() {
           <p className="text-xs text-gray-500 dark:text-gray-500">
             By signing in, you agree to our Terms & Conditions
           </p>
-        </div>
-      </div>
-    </div>
+        </motion.div>
+      </motion.div>
+    </motion.div>
   );
 }

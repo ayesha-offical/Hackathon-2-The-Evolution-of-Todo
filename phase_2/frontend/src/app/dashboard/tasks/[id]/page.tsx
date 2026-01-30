@@ -1,6 +1,7 @@
 /**
  * Task: T072 | Spec: @specs/001-sdd-initialization/ui/pages.md §Edit Task Page
- * Description: Page for editing and deleting existing tasks
+ * Task: T080 | Spec: @specs/001-sdd-initialization/ui/pages.md §TodoFusion Motion Design
+ * Description: Page for editing and deleting existing tasks with spring animations
  * Purpose: Allow users to edit task details and delete tasks with confirmation
  * Reference: plan.md Step 5, Constitution III (User Isolation)
  */
@@ -10,10 +11,12 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
 import TaskForm from '@/components/TaskForm';
 import { ErrorAlert, SuccessToast, AlertContainer } from '@/components/common/Alert';
 import { apiCall } from '@/lib/api';
 import { ROUTES, TASK_STATUS } from '@/config/constants';
+import { ANIMATION_VARIANTS, SPRING_CONFIGS } from '@/config/animations';
 import type { Task, ErrorResponse } from '@/types';
 
 /**
@@ -216,12 +219,30 @@ export default function EditTaskPage() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <motion.div
+        className="min-h-screen bg-gray-50"
+        variants={ANIMATION_VARIANTS.appear}
+        initial="hidden"
+        animate="visible"
+      >
         <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
+          <motion.div
+            className="flex items-center justify-center py-12"
+            variants={ANIMATION_VARIANTS.appear}
+            initial="hidden"
+            animate="visible"
+          >
+            <motion.div
+              className="text-center"
+              animate={{ rotate: 360 }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: 'linear'
+              }}
+            >
               <svg
-                className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600"
+                className="w-8 h-8 mx-auto mb-4 text-blue-600"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -233,156 +254,306 @@ export default function EditTaskPage() {
                   d="M12 4v16m8-8H4"
                 />
               </svg>
-              <p className="text-gray-600">Loading task...</p>
-            </div>
-          </div>
+              <motion.p
+                className="text-gray-600 mt-2"
+                animate={{ opacity: [1, 0.6, 1] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+              >
+                Loading task...
+              </motion.p>
+            </motion.div>
+          </motion.div>
         </main>
-      </div>
+      </motion.div>
     );
   }
 
   // Error state (task not found)
   if (!task && error) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <motion.div
+        className="min-h-screen bg-gray-50"
+        variants={ANIMATION_VARIANTS.appear}
+        initial="hidden"
+        animate="visible"
+      >
         <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <AlertContainer>
-            <ErrorAlert
-              message={error}
-              onClose={() => setError(null)}
-            />
+            <AnimatePresence>
+              <motion.div
+                variants={ANIMATION_VARIANTS.slideInFromRight}
+                initial="hidden"
+                animate="visible"
+              >
+                <ErrorAlert
+                  message={error}
+                  onClose={() => setError(null)}
+                />
+              </motion.div>
+            </AnimatePresence>
           </AlertContainer>
-          <div className="mt-6">
+          <motion.div
+            className="mt-6"
+            variants={ANIMATION_VARIANTS.listItem}
+            initial="hidden"
+            animate="visible"
+          >
             <Link
               href={ROUTES.DASHBOARD}
-              className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+              className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium transition-colors"
             >
               ← Back to Tasks
             </Link>
-          </div>
+          </motion.div>
         </main>
-      </div>
+      </motion.div>
     );
   }
 
   // Task loaded successfully
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-
+    <motion.div
+      className="min-h-screen bg-gray-50"
+      variants={ANIMATION_VARIANTS.appear}
+      initial="hidden"
+      animate="visible"
+    >
       {/* Main Content */}
       <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
-        <div className="mb-8">
+        <motion.div
+          className="mb-8"
+          variants={ANIMATION_VARIANTS.listContainer}
+          initial="hidden"
+          animate="visible"
+        >
           {/* Back Link */}
-          <Link
-            href={ROUTES.DASHBOARD}
-            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium mb-4"
+          <motion.div
+            variants={ANIMATION_VARIANTS.listItem}
+            initial="hidden"
+            animate="visible"
           >
-            ← Back to Tasks
-          </Link>
+            <Link
+              href={ROUTES.DASHBOARD}
+              className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium mb-4 transition-colors"
+            >
+              ← Back to Tasks
+            </Link>
+          </motion.div>
 
-          <h1 className="text-3xl font-bold text-gray-900">Edit Task</h1>
-          <p className="text-gray-600 mt-2">
+          <motion.h1
+            className="text-3xl font-bold text-gray-900"
+            variants={ANIMATION_VARIANTS.listItem}
+            initial="hidden"
+            animate="visible"
+          >
+            Edit Task
+          </motion.h1>
+          <motion.p
+            className="text-gray-600 mt-2"
+            variants={ANIMATION_VARIANTS.listItem}
+            initial="hidden"
+            animate="visible"
+          >
             Update task details below or delete the task permanently.
-          </p>
-        </div>
+          </motion.p>
+        </motion.div>
 
         {/* Alerts */}
         <AlertContainer>
-          {error && (
-            <ErrorAlert
-              message={error}
-              onClose={() => setError(null)}
-            />
-          )}
-          {success && (
-            <SuccessToast
-              message={success}
-              onClose={() => setSuccess(null)}
-            />
-          )}
+          <AnimatePresence mode="wait">
+            {error && (
+              <motion.div
+                key="error"
+                variants={ANIMATION_VARIANTS.slideInFromRight}
+                initial="hidden"
+                animate="visible"
+                exit="hidden"
+              >
+                <ErrorAlert
+                  message={error}
+                  onClose={() => setError(null)}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <AnimatePresence mode="wait">
+            {success && (
+              <motion.div
+                key="success"
+                variants={ANIMATION_VARIANTS.slideInFromRight}
+                initial="hidden"
+                animate="visible"
+                exit="hidden"
+              >
+                <SuccessToast
+                  message={success}
+                  onClose={() => setSuccess(null)}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </AlertContainer>
 
         {/* Task Form */}
-        {task && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <TaskForm
-              task={task}
-              onSubmit={handleSubmit}
-              onCancel={handleCancel}
-              isLoading={isSaving}
-            />
+        <AnimatePresence mode="wait">
+          {task && (
+            <motion.div
+              className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+              key="task-form"
+              variants={ANIMATION_VARIANTS.listItem}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+            >
+              <TaskForm
+                task={task}
+                onSubmit={handleSubmit}
+                onCancel={handleCancel}
+                isLoading={isSaving}
+              />
 
-            {/* Metadata Display */}
-            <div className="mt-8 pt-6 border-t border-gray-200 space-y-2">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-500">
-                    Created: <span className="font-medium text-gray-700">
-                      {formatRelativeTime(task.created_at)}
-                    </span>
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">
-                    Updated: <span className="font-medium text-gray-700">
-                      {formatRelativeTime(task.updated_at)}
-                    </span>
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Delete Section */}
-            <div className="mt-8 pt-6 border-t border-gray-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-medium text-gray-900">Danger Zone</h3>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Once you delete a task, there is no going back.
-                  </p>
-                </div>
-                <button
-                  onClick={handleDeleteClick}
-                  disabled={isDeleting}
-                  className="px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              {/* Metadata Display */}
+              <motion.div
+                className="mt-8 pt-6 border-t border-gray-200 space-y-2"
+                variants={ANIMATION_VARIANTS.listContainer}
+                initial="hidden"
+                animate="visible"
+              >
+                <motion.div
+                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+                  variants={ANIMATION_VARIANTS.listItem}
+                  initial="hidden"
+                  animate="visible"
                 >
-                  {isDeleting ? 'Deleting...' : 'Delete Task'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+                  <div>
+                    <motion.p
+                      className="text-sm text-gray-500"
+                      variants={ANIMATION_VARIANTS.listItem}
+                      initial="hidden"
+                      animate="visible"
+                    >
+                      Created: <span className="font-medium text-gray-700">
+                        {formatRelativeTime(task.created_at)}
+                      </span>
+                    </motion.p>
+                  </div>
+                  <div>
+                    <motion.p
+                      className="text-sm text-gray-500"
+                      variants={ANIMATION_VARIANTS.listItem}
+                      initial="hidden"
+                      animate="visible"
+                    >
+                      Updated: <span className="font-medium text-gray-700">
+                        {formatRelativeTime(task.updated_at)}
+                      </span>
+                    </motion.p>
+                  </div>
+                </motion.div>
+              </motion.div>
+
+              {/* Delete Section */}
+              <motion.div
+                className="mt-8 pt-6 border-t border-gray-200"
+                variants={ANIMATION_VARIANTS.listItem}
+                initial="hidden"
+                animate="visible"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-900">Danger Zone</h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Once you delete a task, there is no going back.
+                    </p>
+                  </div>
+                  <motion.button
+                    onClick={handleDeleteClick}
+                    disabled={isDeleting}
+                    className="px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={SPRING_CONFIGS.primary}
+                  >
+                    {isDeleting ? 'Deleting...' : 'Delete Task'}
+                  </motion.button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Delete Confirmation Modal */}
-        {showDeleteConfirm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-lg max-w-sm mx-4 p-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">Delete Task?</h2>
-              <p className="text-gray-600 mb-6">
-                Are you sure you want to delete this task? This action cannot be undone.
-              </p>
-              <div className="flex gap-4 justify-end">
-                <button
-                  onClick={() => setShowDeleteConfirm(false)}
-                  disabled={isDeleting}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        <AnimatePresence>
+          {showDeleteConfirm && (
+            <motion.div
+              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+              variants={ANIMATION_VARIANTS.overlayFade}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+            >
+              <motion.div
+                className="bg-white rounded-lg shadow-lg max-w-sm w-full p-6"
+                variants={ANIMATION_VARIANTS.appear}
+                initial="hidden"
+                animate="visible"
+                exit="hidden"
+              >
+                <motion.h2
+                  className="text-lg font-bold text-gray-900 mb-4"
+                  variants={ANIMATION_VARIANTS.listItem}
+                  initial="hidden"
+                  animate="visible"
                 >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleConfirmDelete}
-                  disabled={isDeleting}
-                  className="px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  Delete Task?
+                </motion.h2>
+                <motion.p
+                  className="text-gray-600 mb-6"
+                  variants={ANIMATION_VARIANTS.listItem}
+                  initial="hidden"
+                  animate="visible"
                 >
-                  {isDeleting ? 'Deleting...' : 'Delete'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+                  Are you sure you want to delete this task? This action cannot be undone.
+                </motion.p>
+                <motion.div
+                  className="flex gap-4 justify-end"
+                  variants={ANIMATION_VARIANTS.listContainer}
+                  initial="hidden"
+                  animate="visible"
+                >
+                  <motion.button
+                    onClick={() => setShowDeleteConfirm(false)}
+                    disabled={isDeleting}
+                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    variants={ANIMATION_VARIANTS.listItem}
+                    initial="hidden"
+                    animate="visible"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={SPRING_CONFIGS.primary}
+                  >
+                    Cancel
+                  </motion.button>
+                  <motion.button
+                    onClick={handleConfirmDelete}
+                    disabled={isDeleting}
+                    className="px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    variants={ANIMATION_VARIANTS.listItem}
+                    initial="hidden"
+                    animate="visible"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={SPRING_CONFIGS.primary}
+                  >
+                    {isDeleting ? 'Deleting...' : 'Delete'}
+                  </motion.button>
+                </motion.div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
-    </div>
+    </motion.div>
   );
 }
