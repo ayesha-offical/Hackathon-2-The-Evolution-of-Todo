@@ -50,12 +50,10 @@ const AUTH_ROUTES = [
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Get session cookies (Better Auth uses 'better-auth.session_token' or similar)
-  // Check for any auth-related cookies that indicate a logged-in user
-  const hasSession = request.cookies.has('better-auth.session_token') ||
-                     request.cookies.has('auth.token') ||
-                     request.cookies.has('__Secure-authjs.session-token') ||
-                     request.cookies.has('next-auth.session-token');
+  // Get session cookies
+  // Backend sets 'Authorization' cookie with JWT token
+  const hasSession = request.cookies.has('Authorization') ||
+                     request.cookies.has('RefreshToken');
 
   // Check if current path is a protected route
   const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname.startsWith(route));

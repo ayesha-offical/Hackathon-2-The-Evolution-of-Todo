@@ -72,26 +72,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(null);
         setIsError(false);
         setError(null);
+        setIsLoading(false);
         return;
       }
 
       const sessionData = (await response.json()) as unknown as BetterAuthSessionResponse;
-      const session = sessionData?.data || sessionData;
 
-      if (session?.user) {
-        // User is authenticated
-        setUser(session.user as User);
+      // Check for user in response - handle both direct and nested structures
+      const user = sessionData?.user || sessionData?.data?.user;
+
+      if (user && user.id) {
+        // User is authenticated - set user data
+        setUser(user as User);
         setIsError(false);
         setError(null);
       } else {
-        // User is not authenticated
+        // User is not authenticated - no user in response
         setUser(null);
+        setIsError(false);
+        setError(null);
       }
-    } catch {
-      // Session check failed (network error, etc.) - this is okay, user is just not authenticated
+    } catch (error) {
+      // Session check failed (network error, JWT expired, etc.)
+      // User is not authenticated
+      setUser(null);
       setIsError(false);
       setError(null);
-      setUser(null);
     } finally {
       setIsLoading(false);
     }

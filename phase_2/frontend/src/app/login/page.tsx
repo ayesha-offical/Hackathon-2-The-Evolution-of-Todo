@@ -95,7 +95,7 @@ export default function LoginPage() {
 
       if (result && (result.user || result.data?.user)) {
         // Store token for Authorization header if returned in response
-        const token = result.session?.token || result.data?.session?.token;
+        const token = result.token || result.data?.token;
         if (token) {
           // Store in sessionStorage for JWT bearer token injection
           sessionStorage.setItem('auth_token', token);

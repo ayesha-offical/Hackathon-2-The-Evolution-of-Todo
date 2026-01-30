@@ -327,8 +327,8 @@ async def login(
             key="Authorization",
             value=f"Bearer {access_token}",
             httponly=True,
-            secure=True,  # Should be True in production
-            samesite="strict",
+            secure=False,  # False for localhost, True in production
+            samesite="lax",
             max_age=JWT_ACCESS_TOKEN_EXPIRE_SECONDS,
         )
 
@@ -336,8 +336,8 @@ async def login(
             key="RefreshToken",
             value=refresh_token,
             httponly=True,
-            secure=True,  # Should be True in production
-            samesite="strict",
+            secure=False,  # False for localhost, True in production
+            samesite="lax",
             max_age=2592000,  # 30 days
         )
 
@@ -417,8 +417,8 @@ async def refresh(
             key="Authorization",
             value=f"Bearer {new_access_token}",
             httponly=True,
-            secure=True,
-            samesite="strict",
+            secure=False,  # False for localhost, True in production
+            samesite="lax",
             max_age=JWT_ACCESS_TOKEN_EXPIRE_SECONDS,
         )
 

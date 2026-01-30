@@ -16,7 +16,7 @@ import TaskForm from '@/components/TaskForm';
 import { ErrorAlert, SuccessToast, AlertContainer } from '@/components/common/Alert';
 import { apiCall } from '@/lib/api';
 import { ROUTES, TASK_STATUS } from '@/config/constants';
-import { ANIMATION_VARIANTS, SPRING_CONFIGS } from '@/config/animations';
+import { ANIMATION_VARIANTS } from '@/config/animations';
 import type { Task, ErrorResponse } from '@/types';
 
 /**

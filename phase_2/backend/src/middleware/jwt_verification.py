@@ -52,6 +52,10 @@ class JWTVerificationMiddleware(BaseHTTPMiddleware):
             Response: Either verified request forwarded to next handler,
                      or 401 Unauthorized JSON response
         """
+        # Skip verification for CORS preflight requests (OPTIONS)
+        if request.method == "OPTIONS":
+            return await call_next(request)
+
         # Skip verification for public endpoints
         if request.url.path in self.PUBLIC_ENDPOINTS:
             return await call_next(request)
