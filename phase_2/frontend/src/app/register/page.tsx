@@ -153,16 +153,22 @@ export default function RegisterPage() {
       setSubmitError(null);
       setIsSubmitting(true);
 
+      console.debug('[Register] Attempting signup for:', data.email);
+      console.debug('[Register] Auth client baseURL:', process.env.NEXT_PUBLIC_BETTER_AUTH_URL);
+
       // Use Better Auth to sign up
-      // This sends request to /api/v1/auth/register
+      // This sends request to /api/v1/auth/sign-up/email
       const result = await authClient.signUp.email({
         email: data.email,
         password: data.password,
         name: data.email.split("@")[0], // Use email username as name
       });
 
+      console.debug('[Register] Signup response:', result);
+
       if (result) {
         // Registration successful
+        console.debug('[Register] Signup successful');
         setSuccessMessage(
           "Account created! Please check your email to verify your account. Redirecting to login..."
         );
@@ -173,7 +179,9 @@ export default function RegisterPage() {
         }, 5000);
       }
     } catch (error) {
-      console.error("Registration failed:", error);
+      console.error("[Register] Registration failed:", error);
+      console.error("[Register] Error type:", typeof error);
+      console.error("[Register] Error details:", error);
 
       // Check if error message indicates email already exists
       const errorMessage =
@@ -183,8 +191,12 @@ export default function RegisterPage() {
         setSubmitError(ERROR_MESSAGES.EMAIL_ALREADY_REGISTERED);
       } else if (errorMessage.includes("password")) {
         setSubmitError(ERROR_MESSAGES.WEAK_PASSWORD);
+      } else if (errorMessage.includes("Failed to fetch")) {
+        setSubmitError(
+          "Cannot connect to backend. Please check if http://localhost:8000 is running."
+        );
       } else {
-        setSubmitError(errorMessage);
+        setSubmitError(errorMessage || "Registration failed. Please try again.");
       }
     } finally {
       setIsSubmitting(false);
