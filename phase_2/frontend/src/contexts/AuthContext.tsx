@@ -67,8 +67,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    */
   async function checkSession() {
     try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+      console.debug('[Auth] Checking session from:', `${apiUrl}/api/v1/auth/get-session`);
+
       // Call get-session endpoint with credentials to include HTTP-only cookies
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'}/api/v1/auth/get-session`, {
+      const response = await fetch(`${apiUrl}/api/v1/auth/get-session`, {
         method: 'GET',
         credentials: 'include', // CRITICAL: Include HTTP-only cookies in request
         headers: {
@@ -76,7 +79,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
       });
 
+      console.debug('[Auth] Session check response status:', response.status);
+
       if (!response.ok) {
+        console.debug('[Auth] Session check failed with status:', response.status);
         setUser(null);
         setIsError(false);
         setError(null);
@@ -85,17 +91,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       const sessionData = (await response.json()) as unknown as BetterAuthSessionResponse;
+      console.debug('[Auth] Session data received:', sessionData);
 
       // Check for user in response - handle both direct and nested structures
       const user = sessionData?.user || sessionData?.data?.user;
 
       if (user && user.id) {
         // User is authenticated - set user data
+        console.debug('[Auth] User authenticated:', user.email);
         setUser(user as User);
         setIsError(false);
         setError(null);
       } else {
         // User is not authenticated - no user in response
+        console.debug('[Auth] No user in session response');
         setUser(null);
         setIsError(false);
         setError(null);

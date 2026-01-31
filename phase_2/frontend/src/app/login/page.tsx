@@ -88,6 +88,8 @@ export default function LoginPage() {
       setSubmitError(null);
       setIsSubmitting(true);
 
+      console.debug('[Login] Attempting login for:', data.email);
+
       // Use Better Auth to sign in
       // This sends request to /api/v1/auth/login and the backend sets JWT in HTTP-only cookie
       const result = (await authClient.signIn.email({
@@ -95,17 +97,23 @@ export default function LoginPage() {
         password: data.password,
       })) as unknown as BetterAuthSignInResponse;
 
+      console.debug('[Login] Login response:', result);
+
       if (result && (result.user || result.data?.user)) {
         // Login successful - HTTP-only cookies are now set by the backend
+        console.debug('[Login] Login successful, refreshing session');
+
         // Refresh session to update AuthContext with user data
         // This uses credentials: 'include' to automatically send the HTTP-only cookies
         await refreshSession();
 
         // Small delay ensures the browser processes the HTTP-only cookie and state updates
+        console.debug('[Login] Redirecting to dashboard');
         setTimeout(() => {
           router.push(ROUTES.DASHBOARD);
         }, 500); // Increased from 300ms to ensure state propagates
       } else {
+        console.error('[Login] Login failed - no user in response:', result);
         setSubmitError(ERROR_MESSAGES.INVALID_CREDENTIALS);
       }
     } catch (error) {
