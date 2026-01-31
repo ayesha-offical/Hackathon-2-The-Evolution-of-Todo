@@ -154,38 +154,53 @@ export default function RegisterPage() {
       setIsSubmitting(true);
 
       console.debug('[Register] Attempting signup for:', data.email);
-      console.debug('[Register] Auth client baseURL:', process.env.NEXT_PUBLIC_BETTER_AUTH_URL);
+      console.debug('[Register] API Base URL:', process.env.NEXT_PUBLIC_API_BASE_URL);
+      console.debug('[Register] Better Auth URL:', process.env.NEXT_PUBLIC_BETTER_AUTH_URL);
 
       // Use Better Auth to sign up
       // This sends request to /api/v1/auth/sign-up/email
+      console.debug('[Register] Calling authClient.signUp.email...');
       const result = await authClient.signUp.email({
         email: data.email,
         password: data.password,
         name: data.email.split("@")[0], // Use email username as name
       });
 
-      console.debug('[Register] Signup response:', result);
+      console.debug('[Register] Signup response received:', result);
 
       if (result) {
         // Registration successful
-        console.debug('[Register] Signup successful');
+        console.debug('[Register] Signup successful for:', result.user?.email || result.email);
         setSuccessMessage(
-          "Account created! Please check your email to verify your account. Redirecting to login..."
+          "Account created! Redirecting to login..."
         );
 
-        // Redirect to login after 5 seconds
+        // Redirect to login after 2 seconds
         setTimeout(() => {
           router.push(ROUTES.LOGIN);
-        }, 5000);
+        }, 2000);
+      } else {
+        console.error('[Register] No result returned from signup');
+        setSubmitError("Registration failed. Please try again.");
       }
     } catch (error) {
       console.error("[Register] Registration failed:", error);
-      console.error("[Register] Error type:", typeof error);
-      console.error("[Register] Error details:", error);
+      console.error("[Register] Error type:", error?.constructor?.name);
+      console.error("[Register] Error message:", error instanceof Error ? error.message : String(error));
+      console.error("[Register] Full error object:", error);
 
-      // Check if error message indicates email already exists
-      const errorMessage =
-        error instanceof Error ? error.message : "Registration failed";
+      // Extract error message
+      let errorMessage = "Registration failed";
+
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null && 'message' in error) {
+        errorMessage = (error as any).message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+
+      console.debug('[Register] Extracted error message:', errorMessage);
 
       if (errorMessage.includes("already")) {
         setSubmitError(ERROR_MESSAGES.EMAIL_ALREADY_REGISTERED);
@@ -193,7 +208,7 @@ export default function RegisterPage() {
         setSubmitError(ERROR_MESSAGES.WEAK_PASSWORD);
       } else if (errorMessage.includes("Failed to fetch")) {
         setSubmitError(
-          "Cannot connect to backend. Please check if http://localhost:8000 is running."
+          "Cannot connect to backend. Make sure:\n1. Backend is running on http://localhost:8000\n2. You restarted frontend after changing env vars"
         );
       } else {
         setSubmitError(errorMessage || "Registration failed. Please try again.");

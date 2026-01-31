@@ -89,9 +89,12 @@ export default function LoginPage() {
       setIsSubmitting(true);
 
       console.debug('[Login] Attempting login for:', data.email);
+      console.debug('[Login] API Base URL:', process.env.NEXT_PUBLIC_API_BASE_URL);
+      console.debug('[Login] Better Auth URL:', process.env.NEXT_PUBLIC_BETTER_AUTH_URL);
 
       // Use Better Auth to sign in
-      // This sends request to /api/v1/auth/login and the backend sets JWT in HTTP-only cookie
+      // This sends request to /api/v1/auth/sign-in/email and the backend sets JWT in HTTP-only cookie
+      console.debug('[Login] Calling authClient.signIn.email...');
       const result = (await authClient.signIn.email({
         email: data.email,
         password: data.password,
@@ -117,10 +120,18 @@ export default function LoginPage() {
         setSubmitError(ERROR_MESSAGES.INVALID_CREDENTIALS);
       }
     } catch (error) {
-      console.error("Login failed:", error);
-      setSubmitError(
-        error instanceof Error ? error.message : ERROR_MESSAGES.INVALID_CREDENTIALS
-      );
+      console.error("[Login] Login failed:", error);
+      console.error("[Login] Error type:", error?.constructor?.name);
+      console.error("[Login] Error message:", error instanceof Error ? error.message : String(error));
+      console.error("[Login] Full error object:", error);
+
+      const errorMessage = error instanceof Error ? error.message : ERROR_MESSAGES.INVALID_CREDENTIALS;
+
+      if (errorMessage.includes("Failed to fetch")) {
+        setSubmitError("Cannot connect to backend. Make sure:\n1. Backend is running on http://localhost:8000\n2. You restarted frontend after changing env vars");
+      } else {
+        setSubmitError(errorMessage);
+      }
     } finally {
       setIsSubmitting(false);
     }
