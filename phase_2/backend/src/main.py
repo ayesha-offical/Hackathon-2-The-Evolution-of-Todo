@@ -72,20 +72,24 @@ app = FastAPI(
 # MIDDLEWARE CONFIGURATION
 # ============================================================================
 
-# JWT Verification Middleware (Task: T016 - Constitution II - JWT Bridge)
-# MUST be registered first (before CORS and other middleware)
-# Extracts user_id from JWT token and stores in request.state.user_id
-app.add_middleware(JWTVerificationMiddleware)
-
+# IMPORTANT: CORS Middleware MUST be added FIRST!
+# This ensures OPTIONS preflight requests are handled before JWT verification
 # CORS Middleware (Cross-Origin Resource Sharing)
 # Allows frontend to make requests to backend API
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[settings.frontend_url],  # Only frontend origin allowed
     allow_credentials=True,                  # Allow cookies/authorization headers
-    allow_methods=["*"],                     # Allow all HTTP methods
+    allow_methods=["*"],                     # Allow all HTTP methods (GET, POST, OPTIONS, etc.)
     allow_headers=["*"],                     # Allow all headers
+    expose_headers=["*"],                    # Expose all headers to client
+    max_age=600,                             # Cache preflight response for 10 minutes
 )
+
+# JWT Verification Middleware (Task: T016 - Constitution II - JWT Bridge)
+# Added SECOND (after CORS) so OPTIONS requests bypass it
+# Extracts user_id from JWT token and stores in request.state.user_id
+app.add_middleware(JWTVerificationMiddleware)
 
 # ============================================================================
 # EXCEPTION HANDLERS
