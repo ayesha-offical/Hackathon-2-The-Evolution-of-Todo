@@ -14,12 +14,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { authClient } from "@/lib/auth";
 import { useAuth } from "@/contexts/AuthContext";
-import { ROUTES, ERROR_MESSAGES, EMAIL_REGEX } from "@/config/constants";
+import { ROUTES, ERROR_MESSAGES, EMAIL_REGEX, API_BASE_URL } from "@/config/constants";
 import { PasswordInput } from "@/components/common/PasswordInput";
 import { ANIMATION_VARIANTS, SPRING_CONFIGS } from "@/config/animations";
-import type { BetterAuthSignInResponse } from "@/types/auth";
 
 /**
  * Login form validation schema
@@ -89,17 +87,33 @@ export default function LoginPage() {
       setIsSubmitting(true);
 
       console.debug('[Login] Attempting login for:', data.email);
+      console.debug('[Login] API URL:', API_BASE_URL);
 
-      // Use Better Auth to sign in
+      // Use direct API call to login (not Better Auth client)
       // This sends request to /api/v1/auth/login and the backend sets JWT in HTTP-only cookie
-      const result = (await authClient.signIn.email({
-        email: data.email,
-        password: data.password,
-      })) as unknown as BetterAuthSignInResponse;
+      const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // CRITICAL: Include HTTP-only cookies in response
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password,
+        }),
+      });
 
+      console.debug('[Login] Login response status:', response.status);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData?.detail || 'Invalid email or password');
+      }
+
+      const result = await response.json();
       console.debug('[Login] Login response:', result);
 
-      if (result && (result.user || result.data?.user)) {
+      if (result && result.user && result.user.id) {
         // Login successful - HTTP-only cookies are now set by the backend
         console.debug('[Login] Login successful, refreshing session');
 
@@ -118,9 +132,13 @@ export default function LoginPage() {
       }
     } catch (error) {
       console.error("Login failed:", error);
-      setSubmitError(
-        error instanceof Error ? error.message : ERROR_MESSAGES.INVALID_CREDENTIALS
-      );
+      const errorMessage = error instanceof Error ? error.message : ERROR_MESSAGES.INVALID_CREDENTIALS;
+
+      if (errorMessage.includes("Failed to fetch")) {
+        setSubmitError("Cannot connect to backend at " + API_BASE_URL);
+      } else {
+        setSubmitError(errorMessage);
+      }
     } finally {
       setIsSubmitting(false);
     }

@@ -14,13 +14,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { authClient } from "@/lib/auth";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   ROUTES,
   ERROR_MESSAGES,
   PASSWORD_REQUIREMENTS,
   EMAIL_REGEX,
+  API_BASE_URL,
 } from "@/config/constants";
 import { ANIMATION_VARIANTS, SPRING_CONFIGS } from "@/config/animations";
 import { PasswordInput } from "@/components/common/PasswordInput";
@@ -154,29 +154,45 @@ export default function RegisterPage() {
       setIsSubmitting(true);
 
       console.debug('[Register] Attempting signup for:', data.email);
-      console.debug('[Register] Auth client baseURL:', process.env.NEXT_PUBLIC_BETTER_AUTH_URL);
+      console.debug('[Register] API URL:', API_BASE_URL);
 
-      // Use Better Auth to sign up
-      // This sends request to /api/v1/auth/sign-up/email
-      const result = await authClient.signUp.email({
-        email: data.email,
-        password: data.password,
-        name: data.email.split("@")[0], // Use email username as name
+      // Use direct API call to sign up (not Better Auth client)
+      // This sends request to /api/v1/auth/register
+      const response = await fetch(`${API_BASE_URL}/api/v1/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Include HTTP-only cookies
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password,
+        }),
       });
 
+      console.debug('[Register] Signup response status:', response.status);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData?.detail || `Registration failed: ${response.statusText}`);
+      }
+
+      const result = await response.json();
       console.debug('[Register] Signup response:', result);
 
-      if (result) {
+      if (result && result.id) {
         // Registration successful
-        console.debug('[Register] Signup successful');
+        console.debug('[Register] Signup successful for:', result.email);
         setSuccessMessage(
-          "Account created! Please check your email to verify your account. Redirecting to login..."
+          "Account created! Redirecting to login..."
         );
 
-        // Redirect to login after 5 seconds
+        // Redirect to login after 2 seconds
         setTimeout(() => {
           router.push(ROUTES.LOGIN);
-        }, 5000);
+        }, 2000);
+      } else {
+        throw new Error("No user ID returned from registration");
       }
     } catch (error) {
       console.error("[Register] Registration failed:", error);
@@ -193,7 +209,7 @@ export default function RegisterPage() {
         setSubmitError(ERROR_MESSAGES.WEAK_PASSWORD);
       } else if (errorMessage.includes("Failed to fetch")) {
         setSubmitError(
-          "Cannot connect to backend. Please check if http://localhost:8000 is running."
+          "Cannot connect to backend at " + API_BASE_URL + ". Please check if it's running."
         );
       } else {
         setSubmitError(errorMessage || "Registration failed. Please try again.");
