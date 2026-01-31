@@ -55,9 +55,9 @@ class Settings(BaseSettings):
     # CORS CONFIGURATION
     # =========================================================================
 
-    frontend_url: str = "http://localhost:3001"
+    frontend_url: str = "http://localhost:3000"
     """Frontend URL for CORS - allows requests from frontend origin only
-    Note: Default is 3001 (next dev server), use http://localhost:3000 for production builds"""
+    Note: 3000 is the standard Next.js dev server port"""
 
     # =========================================================================
     # CONSTANTS (Not from environment - hardcoded JWT expiration)

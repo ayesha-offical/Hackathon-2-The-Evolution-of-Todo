@@ -6,7 +6,7 @@
 ## 🚀 Quick Start
 
 ### Servers Already Running
-- ✅ Backend: `http://localhost:8000`
+- ✅ Backend: `http://localhost:8000` 
 - ✅ Frontend: `http://localhost:3000`
 
 ### Test the Complete Flow
