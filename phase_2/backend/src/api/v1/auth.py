@@ -145,6 +145,8 @@ async def better_auth_get_session(
     from src.config import get_settings
     from src.models.user import User
     from sqlalchemy import select
+    import logging
+    logger = logging.getLogger(__name__)
 
     try:
         token = None
@@ -152,6 +154,7 @@ async def better_auth_get_session(
         # Try to get token from Authorization header first
         if authorization and authorization.startswith("Bearer "):
             token = authorization[len("Bearer "):].strip()
+            logger.debug(f"[get-session] Token from Authorization header")
 
         # If no token in header, check cookies (Constitution II - HTTP-only cookies)
         if not token:
@@ -161,12 +164,14 @@ async def better_auth_get_session(
                 auth_cookie = request.cookies.get('Authorization')
                 if auth_cookie and auth_cookie.startswith("Bearer "):
                     token = auth_cookie[len("Bearer "):].strip()
+                    logger.debug(f"[get-session] Token from Authorization cookie")
             except (AttributeError, TypeError):
                 # Request object might not have cookies in some contexts
                 pass
 
             # If still no token, return empty session
             if not token:
+                logger.debug(f"[get-session] No token found in header or cookies")
                 return {"user": None, "session": None}
 
         settings = get_settings()
@@ -177,22 +182,27 @@ async def better_auth_get_session(
                 settings.better_auth_secret,
                 algorithms=[JWT_ALGORITHM],
             )
+            logger.debug(f"[get-session] JWT decoded successfully: {payload}")
         except Exception as decode_error:
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.debug(f"JWT decode error: {decode_error}")
+            logger.debug(f"[get-session] JWT decode error: {decode_error}")
             return {"user": None, "session": None}
 
         user_id = payload.get("sub")
         if not user_id:
+            logger.debug(f"[get-session] No user_id in token payload")
             return {"user": None, "session": None}
+
+        logger.debug(f"[get-session] Looking up user: {user_id}")
 
         # Get user from database
         result = await session.execute(select(User).where(User.id == user_id))
         user = result.scalar_one_or_none()
 
         if not user:
+            logger.debug(f"[get-session] User not found in database: {user_id}")
             return {"user": None, "session": None}
+
+        logger.debug(f"[get-session] User found: {user.email}")
 
         return {
             "user": {
@@ -209,9 +219,7 @@ async def better_auth_get_session(
             },
         }
     except Exception as e:
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.debug(f"Session check error: {e}")
+        logger.debug(f"[get-session] Session check error: {e}")
         return {"user": None, "session": None}
 
 

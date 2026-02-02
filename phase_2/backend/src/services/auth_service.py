@@ -290,13 +290,14 @@ class AuthService:
         Returns:
             str: Signed JWT access token
         """
-        now = utc_now()
-        expire = now + timedelta(seconds=JWT_ACCESS_TOKEN_EXPIRE_SECONDS)
+        import time
+        now_timestamp = int(time.time())
+        exp_timestamp = now_timestamp + JWT_ACCESS_TOKEN_EXPIRE_SECONDS
 
         payload = {
             "sub": user_id,
-            "iat": now,
-            "exp": expire,
+            "iat": now_timestamp,
+            "exp": exp_timestamp,
         }
 
         token = jwt.encode(
@@ -319,13 +320,14 @@ class AuthService:
         Returns:
             str: Signed JWT refresh token
         """
-        now = utc_now()
-        expire = now + timedelta(seconds=JWT_REFRESH_TOKEN_EXPIRE_SECONDS)
+        import time
+        now_timestamp = int(time.time())
+        exp_timestamp = now_timestamp + JWT_REFRESH_TOKEN_EXPIRE_SECONDS
 
         payload = {
             "sub": user_id,
-            "iat": now,
-            "exp": expire,
+            "iat": now_timestamp,
+            "exp": exp_timestamp,
         }
 
         token = jwt.encode(
@@ -354,7 +356,8 @@ class AuthService:
             self.settings.better_auth_secret,
             algorithms=[JWT_ALGORITHM],
         )
-        expires_at = datetime.fromtimestamp(payload["exp"])
+        # payload["exp"] is already a Unix timestamp (integer)
+        expires_at = datetime.utcfromtimestamp(payload["exp"])
 
         # Hash token for secure storage
         token_hash = hash_password(refresh_token)
