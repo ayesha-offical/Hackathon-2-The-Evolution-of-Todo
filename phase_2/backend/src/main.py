@@ -76,10 +76,15 @@ app = FastAPI(
 # This ensures OPTIONS preflight requests are handled before JWT verification
 # CORS Middleware (Cross-Origin Resource Sharing)
 # Allows frontend to make requests to backend API
+# Allow both localhost:3000 and localhost:3001 for development (Next.js can use either port)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.frontend_url],  # Only frontend origin allowed
-    allow_credentials=True,                  # Allow cookies/authorization headers
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:3001",
+        settings.frontend_url,  # Fallback to configured frontend URL
+    ],
+    allow_credentials=True,                  # Allow cookies/authorization headers (CRITICAL for Better Auth)
     allow_methods=["*"],                     # Allow all HTTP methods (GET, POST, OPTIONS, etc.)
     allow_headers=["*"],                     # Allow all headers
     expose_headers=["*"],                    # Expose all headers to client

@@ -39,20 +39,6 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 /**
  * Login page component
- *
- * Features:
- * - Email and password inputs with validation
- * - Real-time validation with react-hook-form
- * - Submit to `/api/v1/auth/login` endpoint
- * - Display error messages for invalid credentials
- * - Redirect to dashboard on successful login
- * - Show links to registration and password reset
- * - Responsive design (mobile to desktop)
- *
- * Reference:
- * - UI spec: @specs/001-sdd-initialization/ui/pages.md §Login Page
- * - API spec: rest-endpoints.md §POST /api/v1/auth/login
- * - Auth flow: plan.md Step 4 §Frontend Authentication
  */
 export default function LoginPage() {
   const router = useRouter();
@@ -71,7 +57,6 @@ export default function LoginPage() {
 
   /**
    * Redirect if already authenticated
-   * Use useEffect instead of render-time logic to avoid React warnings
    */
   useEffect(() => {
     if (!authLoading && user) {
@@ -81,9 +66,6 @@ export default function LoginPage() {
 
   /**
    * Handle form submission
-   * Call Better Auth signIn method with email and password
-   * Constitution II: JWT tokens are set as HTTP-only cookies by the backend,
-   * and then retrieved via the /get-session endpoint on subsequent requests
    */
   async function onSubmit(data: LoginFormData) {
     try {
@@ -91,46 +73,38 @@ export default function LoginPage() {
       setIsSubmitting(true);
 
       console.debug('[Login] Attempting login for:', data.email);
-      console.debug('[Login] API Base URL:', process.env.NEXT_PUBLIC_API_BASE_URL);
-      console.debug('[Login] Better Auth URL:', process.env.NEXT_PUBLIC_BETTER_AUTH_URL);
 
-      // Use Better Auth to sign in
-      // This sends request to /api/v1/auth/sign-in/email and the backend sets JWT in HTTP-only cookie
-      console.debug('[Login] Calling authClient.signIn.email...');
+      // Call Better Auth to sign in
       const result = (await authClient.signIn.email({
         email: data.email,
         password: data.password,
       })) as unknown as BetterAuthSignInResponse;
 
-      console.debug('[Login] Login response:', result);
+      console.debug('[Login] Response received:', result);
 
       if (result && (result.user || result.data?.user)) {
-        // Login successful - HTTP-only cookies are now set by the backend
-        console.debug('[Login] Login successful, refreshing session');
+        console.debug('[Login] User authenticated via Better Auth');
 
-        // Refresh session to update AuthContext with user data
-        // This uses credentials: 'include' to automatically send the HTTP-only cookies
+        // Better Auth handles token storage via HTTP-only cookies automatically
+        // No manual token extraction or storage needed
+        console.debug('[Login] Better Auth session established (cookie-based)');
+
+        // Refresh session to load authenticated user state
         await refreshSession();
 
-        // Small delay ensures the browser processes the HTTP-only cookie and state updates
-        console.debug('[Login] Redirecting to dashboard');
+        // Redirect to dashboard
         setTimeout(() => {
           router.push(ROUTES.DASHBOARD);
-        }, 500); // Increased from 300ms to ensure state propagates
+        }, 500);
       } else {
         console.error('[Login] Login failed - no user in response:', result);
         setSubmitError(ERROR_MESSAGES.INVALID_CREDENTIALS);
       }
     } catch (error) {
       console.error("[Login] Login failed:", error);
-      console.error("[Login] Error type:", error?.constructor?.name);
-      console.error("[Login] Error message:", error instanceof Error ? error.message : String(error));
-      console.error("[Login] Full error object:", error);
-
       const errorMessage = error instanceof Error ? error.message : ERROR_MESSAGES.INVALID_CREDENTIALS;
-
       if (errorMessage.includes("Failed to fetch")) {
-        setSubmitError("Cannot connect to backend. Make sure:\n1. Backend is running on http://localhost:8000\n2. You restarted frontend after changing env vars");
+        setSubmitError("Cannot connect to backend. Make sure backend is running on http://localhost:8000");
       } else {
         setSubmitError(errorMessage);
       }

@@ -68,12 +68,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function checkSession() {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
-      console.debug('[Auth] Checking session from:', `${apiUrl}/api/v1/auth/get-session`);
+      console.debug('[Auth] Checking Better Auth session from:', `${apiUrl}/api/v1/auth/get-session`);
 
-      // Call get-session endpoint with credentials to include HTTP-only cookies
+      // Call get-session endpoint with credentials to include HTTP-only cookies (Better Auth)
       const response = await fetch(`${apiUrl}/api/v1/auth/get-session`, {
         method: 'GET',
-        credentials: 'include', // CRITICAL: Include HTTP-only cookies in request
+        credentials: 'include', // CRITICAL: Include HTTP-only cookies (Better Auth session) in request
         headers: {
           'Content-Type': 'application/json',
         },
@@ -123,34 +123,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   /**
    * Logout function
-   * Clears session and redirects to login
+   * Clears session, localStorage, and redirects to login
+   * Constitution II: Clear all authentication tokens when user logs out
    */
   async function logout() {
     try {
-      // Clear sessionStorage token
-      if (typeof window !== "undefined") {
-        sessionStorage.removeItem('auth_token');
-      }
-
-      // Call logout endpoint to clear HTTP-only cookies
+      // Call logout endpoint to clear HTTP-only cookies and revoke refresh tokens
       try {
+        console.debug('[Auth] Calling logout endpoint to clear Better Auth cookies');
         await apiCall("/api/v1/auth/logout", { method: "POST" });
-      } catch {
-        // Logout endpoint error is not critical - user token is already cleared
+      } catch (err) {
+        // Logout endpoint error is not critical - Better Auth will clear on next check
+        console.debug('[Auth] Logout endpoint error (non-critical):', err);
       }
 
       // Clear user state
       setUser(null);
       setIsError(false);
       setError(null);
+      console.debug('[Auth] User state cleared');
 
       // Add small delay to ensure Set-Cookie response is processed by browser
       await new Promise(resolve => setTimeout(resolve, 100));
 
       // Redirect to login
+      console.debug('[Auth] Redirecting to login');
       router.push(ROUTES.LOGIN);
     } catch (err) {
-      console.error("Logout error:", err);
+      console.error("[Auth] Logout error:", err);
       // Still redirect even if there's an error
       setUser(null);
       router.push(ROUTES.LOGIN);

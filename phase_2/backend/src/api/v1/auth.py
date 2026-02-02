@@ -93,20 +93,24 @@ async def better_auth_sign_in(
         await session.commit()
 
         # Set HTTP-only cookies
+        # For cross-origin cookie sharing between localhost:3000 and localhost:8000
+        # we need domain=None (or omit it) to set cookies for the current domain only
         response.set_cookie(
             key="Authorization",
             value=f"Bearer {access_token}",
-            httponly=True,
-            secure=False,  # False for localhost, True in production
-            samesite="lax",
+            httponly=False,  # Changed to False for debugging - can see in DevTools
+            secure=False,  # False for localhost HTTP
+            samesite="none",  # "none" for cross-origin (localhost 3000 ↔ 8000)
+            path="/",
             max_age=JWT_ACCESS_TOKEN_EXPIRE_SECONDS,
         )
         response.set_cookie(
             key="RefreshToken",
             value=refresh_token,
-            httponly=True,
+            httponly=False,  # Changed to False for debugging
             secure=False,
-            samesite="lax",
+            samesite="none",  # "none" for cross-origin (localhost 3000 ↔ 8000)
+            path="/",
             max_age=2592000,
         )
 
@@ -347,18 +351,18 @@ async def login(
         response.set_cookie(
             key="Authorization",
             value=f"Bearer {access_token}",
-            httponly=True,
-            secure=False,  # False for localhost, True in production
-            samesite="lax",
+            httponly=False,  # Changed to False for debugging - can see in DevTools
+            secure=False,  # False for localhost HTTP
+            samesite="none",  # "none" for cross-origin (localhost 3000 ↔ 8000)
             max_age=JWT_ACCESS_TOKEN_EXPIRE_SECONDS,
         )
 
         response.set_cookie(
             key="RefreshToken",
             value=refresh_token,
-            httponly=True,
-            secure=False,  # False for localhost, True in production
-            samesite="lax",
+            httponly=False,  # Changed to False for debugging
+            secure=False,
+            samesite="none",  # "none" for cross-origin (localhost 3000 ↔ 8000)
             max_age=2592000,  # 30 days
         )
 
@@ -437,9 +441,10 @@ async def refresh(
         response.set_cookie(
             key="Authorization",
             value=f"Bearer {new_access_token}",
-            httponly=True,
-            secure=False,  # False for localhost, True in production
-            samesite="lax",
+            httponly=False,  # Changed to False for debugging
+            secure=False,  # False for localhost HTTP
+            samesite="none",  # "none" for cross-origin (localhost 3000 ↔ 8000)
+            path="/",
             max_age=JWT_ACCESS_TOKEN_EXPIRE_SECONDS,
         )
 
