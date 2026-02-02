@@ -1,6 +1,6 @@
 /**
  * Task: T066 | Spec: @specs/001-sdd-initialization/ui/pages.md §Shared Components
- * Task: T080 | Spec: @specs/001-sdd-initialization/ui/pages.md §TodoFusion Motion Design
+ * Task: T080 | Spec: @specs/001-sdd-initialization/ui/pages.md §FocusHub Motion Design
  * Description: Navigation header with user menu and logout with spring animations
  * Purpose: Display app branding, user info, and authentication actions
  * Reference: Constitution II (JWT Bridge), Constitution VI (UI Components), spring animations
@@ -51,7 +51,7 @@ export function Header() {
               className="flex items-center gap-2 group"
             >
               <span className="text-lg sm:text-xl font-bold bg-gradient-primary bg-clip-text text-transparent group-hover:opacity-80 transition-opacity">
-                ✨ Todo Fusion
+                FocusHub
               </span>
             </Link>
           </motion.div>

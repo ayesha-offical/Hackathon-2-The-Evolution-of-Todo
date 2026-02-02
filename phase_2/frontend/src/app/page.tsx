@@ -18,7 +18,7 @@ export default function Home() {
           initial="hidden"
           animate="visible"
         >
-          Todo Fusion
+          FocusHub
         </motion.h1>
         <motion.p
           className="text-lg sm:text-xl text-text-secondary mb-8"
@@ -39,7 +39,7 @@ export default function Home() {
             ✅ Frontend setup complete!
           </p>
           <p className="text-sm text-text-muted">
-            Start managing your tasks with TodoFusion
+            Start managing your tasks with FocusHub
           </p>
         </motion.div>
 

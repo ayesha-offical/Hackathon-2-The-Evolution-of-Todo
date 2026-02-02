@@ -62,7 +62,7 @@ export function Navigation() {
               className="flex items-center gap-2 flex-shrink-0 group"
             >
               <span className="text-lg sm:text-xl font-bold bg-gradient-primary bg-clip-text text-transparent group-hover:opacity-80 transition-opacity">
-                ✨ Todo Fusion
+               FocusHub
               </span>
             </Link>
           </motion.div>
