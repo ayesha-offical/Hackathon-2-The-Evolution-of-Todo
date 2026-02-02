@@ -99,7 +99,7 @@ app.add_middleware(
     allow_credentials=True,                  # Allow cookies/authorization headers (CRITICAL for Better Auth)
     allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization"],
-    expose_headers=["Content-Type", "Authorization"],
+    expose_headers=["Content-Type", "Authorization", "Set-Cookie"],  # CRITICAL: Expose Set-Cookie for browser to receive cookies
     max_age=600,                             # Cache preflight response for 10 minutes
 )
 

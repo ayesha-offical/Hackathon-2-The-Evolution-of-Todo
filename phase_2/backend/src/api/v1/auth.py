@@ -184,6 +184,10 @@ async def better_auth_get_session(
     try:
         token = None
 
+        # DEBUG: Log all received cookies
+        available_cookies = list(request.cookies.keys())
+        logger.debug(f"[get-session] Available cookies: {available_cookies}")
+
         # Try to get token from Authorization header first
         if authorization and authorization.startswith("Bearer "):
             token = authorization[len("Bearer "):].strip()
@@ -195,11 +199,13 @@ async def better_auth_get_session(
             # The cookie value is "Bearer <token>"
             try:
                 auth_cookie = request.cookies.get('Authorization')
+                logger.debug(f"[get-session] Authorization cookie value: {auth_cookie[:20] if auth_cookie else 'None'}...")
                 if auth_cookie and auth_cookie.startswith("Bearer "):
                     token = auth_cookie[len("Bearer "):].strip()
-                    logger.debug(f"[get-session] Token from Authorization cookie")
-            except (AttributeError, TypeError):
+                    logger.debug(f"[get-session] Token extracted from Authorization cookie")
+            except (AttributeError, TypeError) as e:
                 # Request object might not have cookies in some contexts
+                logger.debug(f"[get-session] Error reading Authorization cookie: {e}")
                 pass
 
             # If still no token, return empty session
