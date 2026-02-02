@@ -37,6 +37,7 @@ router = APIRouter()
 )
 async def better_auth_sign_up(
     user_data: UserCreate,
+    response: Response,
     session: AsyncSession = Depends(get_db_session),
 ) -> dict:
     """Better Auth compatible sign-up endpoint."""
@@ -47,6 +48,34 @@ async def better_auth_sign_up(
             password=user_data.password,
         )
         await session.commit()
+
+        # After successful registration, auto-login and set cookies
+        _, access_token, refresh_token = await service.login_user(
+            email=user_data.email,
+            password=user_data.password,
+        )
+        await session.commit()
+
+        # Set HTTP-only cookies for local development (both access and refresh tokens)
+        response.set_cookie(
+            key="Authorization",
+            value=f"Bearer {access_token}",
+            httponly=True,  # True for security - prevents JavaScript access
+            secure=False,   # False for localhost HTTP (would be True in production with HTTPS)
+            samesite="lax",  # "lax" for local development (sufficient for same-domain)
+            path="/",
+            max_age=JWT_ACCESS_TOKEN_EXPIRE_SECONDS,
+        )
+        response.set_cookie(
+            key="RefreshToken",
+            value=refresh_token,
+            httponly=True,
+            secure=False,
+            samesite="lax",  # "lax" for local development
+            path="/",
+            max_age=2592000,  # 30 days
+        )
+
         return {
             "user": {
                 "id": user.id,
@@ -246,6 +275,7 @@ async def better_auth_get_session(
 )
 async def register(
     user_data: UserCreate,
+    response: Response,
     session: AsyncSession = Depends(get_db_session),
 ) -> UserResponse:
     """
@@ -255,6 +285,7 @@ async def register(
 
     Args:
         user_data: UserCreate with email and password
+        response: FastAPI Response for setting cookies
         session: Database session (dependency injection)
 
     Returns:
@@ -273,6 +304,33 @@ async def register(
 
         # Commit transaction
         await session.commit()
+
+        # After successful registration, auto-login and set cookies
+        _, access_token, refresh_token = await service.login_user(
+            email=user_data.email,
+            password=user_data.password,
+        )
+        await session.commit()
+
+        # Set HTTP-only cookies for local development (both access and refresh tokens)
+        response.set_cookie(
+            key="Authorization",
+            value=f"Bearer {access_token}",
+            httponly=True,  # True for security - prevents JavaScript access
+            secure=False,   # False for localhost HTTP (would be True in production with HTTPS)
+            samesite="lax",  # "lax" for local development (sufficient for same-domain)
+            path="/",
+            max_age=JWT_ACCESS_TOKEN_EXPIRE_SECONDS,
+        )
+        response.set_cookie(
+            key="RefreshToken",
+            value=refresh_token,
+            httponly=True,
+            secure=False,
+            samesite="lax",  # "lax" for local development
+            path="/",
+            max_age=2592000,  # 30 days
+        )
 
         # TODO: T038 - Send verification email (mock for now)
 
