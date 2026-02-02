@@ -160,13 +160,21 @@ export default function DashboardPage() {
   }
 
   /**
-   * Load tasks on component mount
+   * Load tasks on component mount or when user changes
+   * Clear tasks when user logs out to prevent showing stale data
    */
   useEffect(() => {
-    if (!authLoading && user) {
-      loadTasks();
+    if (!authLoading) {
+      if (user) {
+        // User logged in - load their tasks
+        loadTasks();
+      } else {
+        // User logged out - clear tasks to prevent showing old user's data
+        setTasks([]);
+        setLoading(false);
+      }
     }
-  }, [authLoading, user]);
+  }, [authLoading, user?.id]); // Use user?.id instead of user to avoid unnecessary reloads
 
   // Show loading state during auth check
   if (authLoading) {

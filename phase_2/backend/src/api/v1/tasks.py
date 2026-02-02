@@ -67,10 +67,12 @@ async def create_task(
             description=task_data.description,
             status=task_data.status,
         )
-        # Commit and refresh to ensure all fields are populated (timestamps, etc.)
-        await session.flush()  # Flush to DB but don't commit yet
-        await session.refresh(task)  # Refresh from DB to get all generated values
-        await session.commit()  # Now commit the transaction
+        # Flush the create to DB to get generated values (id, timestamps, etc.)
+        await session.flush()
+        # Refresh from DB to get all generated values
+        await session.refresh(task)
+        # Commit the transaction
+        await session.commit()
         return TaskResponse.model_validate(task)
     except ValueError as e:
         await session.rollback()
@@ -259,6 +261,9 @@ async def update_task(
         if not task:
             raise HTTPException(status_code=404, detail="Task not found")
 
+        # Flush the update to database first (required with autoflush=False)
+        await session.flush()
+        # Commit the transaction
         await session.commit()
         return TaskResponse.model_validate(task)
     except ValueError as e:
@@ -318,6 +323,8 @@ async def delete_task(
         if not deleted:
             raise HTTPException(status_code=404, detail="Task not found")
 
+        # Commit the transaction to persist the deletion
+        # The service already flushed the deletion, so we just need to commit
         await session.commit()
     except HTTPException:
         await session.rollback()

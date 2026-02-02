@@ -60,19 +60,27 @@ class JWTVerificationMiddleware(BaseHTTPMiddleware):
         if request.url.path in self.PUBLIC_ENDPOINTS:
             return await call_next(request)
 
-        # Extract token from Authorization header
+        # Extract token from Authorization header OR from Authorization cookie
         auth_header = request.headers.get("Authorization", "")
+        token = None
 
-        if not auth_header.startswith(self.BEARER_PREFIX):
+        # Try Authorization header first (Bearer token)
+        if auth_header.startswith(self.BEARER_PREFIX):
+            token = auth_header[len(self.BEARER_PREFIX) :].strip()
+        else:
+            # Try Authorization cookie (set by login endpoint as HTTP-only cookie)
+            auth_cookie = request.cookies.get("Authorization", "")
+            if auth_cookie.startswith(self.BEARER_PREFIX):
+                token = auth_cookie[len(self.BEARER_PREFIX) :].strip()
+
+        if not token:
             logger.warning(
-                f"Missing or malformed Authorization header for {request.url.path}"
+                f"Missing or malformed Authorization header/cookie for {request.url.path}"
             )
             return JSONResponse(
                 status_code=401,
                 content={"detail": "Invalid or missing Authorization header"},
             )
-
-        token = auth_header[len(self.BEARER_PREFIX) :].strip()
 
         # Verify JWT signature
         try:

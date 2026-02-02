@@ -5,8 +5,8 @@
 
 from typing import List, Optional, Tuple
 
-from sqlalchemy import desc, select
-from sqlmodel import Session
+from sqlalchemy import delete, desc, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.constants import TaskStatus
 from src.models.task import Task
@@ -18,8 +18,8 @@ from src.utils.uuid import uuid4_str
 class TaskService:
     """Service for task management with Constitution III user isolation."""
 
-    def __init__(self, session: Session):
-        """Initialize task service with database session."""
+    def __init__(self, session: AsyncSession):
+        """Initialize task service with async database session."""
         self.session = session
 
     async def create_task(
@@ -201,15 +201,17 @@ class TaskService:
         Returns:
             True if deleted successfully, False if not found
         """
-        # Query with user_id check first (Constitution III - CRITICAL)
-        stmt = select(Task).where(Task.id == task_id, Task.user_id == user_id)
+        # Build DELETE statement with user_id check (Constitution III - CRITICAL)
+        # This ensures we only delete tasks that belong to the user
+        stmt = delete(Task).where(Task.id == task_id, Task.user_id == user_id)
 
+        # Execute the delete statement
         result = await self.session.execute(stmt)
-        task = result.scalar_one_or_none()
 
-        if not task:
-            return False
+        # Flush to ensure the delete is processed and rowcount is accurate
+        # In SQLAlchemy async, rowcount may not be reliable until flushed
+        await self.session.flush()
 
-        # Delete the task
-        self.session.delete(task)
-        return True
+        # Check if any rows were deleted
+        # result.rowcount gives the number of rows affected
+        return result.rowcount > 0

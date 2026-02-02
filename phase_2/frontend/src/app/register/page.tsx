@@ -7,7 +7,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -115,7 +115,7 @@ function getPasswordStrengthLabel(
  */
 export default function RegisterPage() {
   const router = useRouter();
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading, logout } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -137,12 +137,10 @@ export default function RegisterPage() {
   const strengthLabel = getPasswordStrengthLabel(strength);
 
   /**
-   * Redirect if already authenticated
+   * NOTE: We do NOT redirect authenticated users from signup page
+   * This allows users to create new accounts even if logged in,
+   * or provides better UX if they need to signup despite being authenticated
    */
-  if (!authLoading && user) {
-    router.push(ROUTES.DASHBOARD);
-    return null;
-  }
 
   /**
    * Handle form submission
@@ -258,6 +256,32 @@ export default function RegisterPage() {
             </Link>
           </motion.p>
         </motion.div>
+
+        {/* Already Logged In Alert */}
+        <AnimatePresence mode="wait">
+          {!authLoading && user && (
+            <motion.div
+              className="rounded-md bg-blue-50 dark:bg-blue-900/20 p-4 border border-blue-200 dark:border-blue-800"
+              variants={ANIMATION_VARIANTS.slideInFromRight}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+            >
+              <p className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-3">
+                You are currently logged in as <strong>{user.email}</strong>
+              </p>
+              <motion.button
+                type="button"
+                onClick={logout}
+                className="text-sm text-blue-600 dark:text-blue-300 hover:text-blue-700 dark:hover:text-blue-200 underline font-medium"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Logout to create a different account →
+              </motion.button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Success message */}
         <AnimatePresence mode="wait">

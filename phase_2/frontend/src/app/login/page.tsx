@@ -7,7 +7,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -71,11 +71,13 @@ export default function LoginPage() {
 
   /**
    * Redirect if already authenticated
+   * Use useEffect instead of render-time logic to avoid React warnings
    */
-  if (!authLoading && user) {
-    router.push(ROUTES.DASHBOARD);
-    return null;
-  }
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.push(ROUTES.DASHBOARD);
+    }
+  }, [authLoading, user, router]);
 
   /**
    * Handle form submission
