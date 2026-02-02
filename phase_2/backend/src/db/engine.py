@@ -44,19 +44,20 @@ def get_database_url() -> str:
 
 
 # Create async SQLAlchemy engine
-# NullPool: No connection pooling (Neon serverless databases prefer this)
-# echo: Log SQL queries in development
+# For local development: Use simple connection pool
+# For production (Neon): Use NullPool with SSL
 engine: AsyncEngine = create_async_engine(
     get_database_url(),
     echo=settings.is_development(),
     future=True,
-    poolclass=NullPool,  # Neon-compatible: no persistent connections
+    poolclass=NullPool if "neon.tech" in settings.get_database_url() else None,
     connect_args={
-        "ssl": True,  # Neon requires SSL
+        # Only use SSL for remote Neon databases, not for local PostgreSQL
+        "ssl": "require" if "neon.tech" in settings.get_database_url() else None,
         "server_settings": {
             "application_name": "phase2_todo_api",
         },
-    },
+    } if "neon.tech" in settings.get_database_url() else {},
 )
 
 # Create session factory for dependency injection

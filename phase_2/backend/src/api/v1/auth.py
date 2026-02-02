@@ -92,24 +92,24 @@ async def better_auth_sign_in(
         )
         await session.commit()
 
-        # Set HTTP-only cookies
-        # For cross-origin cookie sharing between localhost:3000 and localhost:8000
-        # we need domain=None (or omit it) to set cookies for the current domain only
+        # Set HTTP-only cookies for local development
+        # For localhost: Use samesite="lax" (simpler, sufficient for local dev)
+        # For production: Should use samesite="strict" or "none" with secure=True
         response.set_cookie(
             key="Authorization",
             value=f"Bearer {access_token}",
-            httponly=False,  # Changed to False for debugging - can see in DevTools
-            secure=False,  # False for localhost HTTP
-            samesite="none",  # "none" for cross-origin (localhost 3000 ↔ 8000)
+            httponly=True,  # True for security - prevents JavaScript access
+            secure=False,  # False for localhost HTTP (would be True in production with HTTPS)
+            samesite="lax",  # "lax" for local development (sufficient for same-domain)
             path="/",
             max_age=JWT_ACCESS_TOKEN_EXPIRE_SECONDS,
         )
         response.set_cookie(
             key="RefreshToken",
             value=refresh_token,
-            httponly=False,  # Changed to False for debugging
+            httponly=True,
             secure=False,
-            samesite="none",  # "none" for cross-origin (localhost 3000 ↔ 8000)
+            samesite="lax",  # "lax" for local development
             path="/",
             max_age=2592000,
         )
@@ -347,22 +347,24 @@ async def login(
         # Commit transaction
         await session.commit()
 
-        # Set HTTP-only cookies
+        # Set HTTP-only cookies for local development
         response.set_cookie(
             key="Authorization",
             value=f"Bearer {access_token}",
-            httponly=False,  # Changed to False for debugging - can see in DevTools
+            httponly=True,  # True for security - prevents JavaScript access
             secure=False,  # False for localhost HTTP
-            samesite="none",  # "none" for cross-origin (localhost 3000 ↔ 8000)
+            samesite="lax",  # "lax" for local development
+            path="/",
             max_age=JWT_ACCESS_TOKEN_EXPIRE_SECONDS,
         )
 
         response.set_cookie(
             key="RefreshToken",
             value=refresh_token,
-            httponly=False,  # Changed to False for debugging
+            httponly=True,
             secure=False,
-            samesite="none",  # "none" for cross-origin (localhost 3000 ↔ 8000)
+            samesite="lax",  # "lax" for local development
+            path="/",
             max_age=2592000,  # 30 days
         )
 
@@ -441,9 +443,9 @@ async def refresh(
         response.set_cookie(
             key="Authorization",
             value=f"Bearer {new_access_token}",
-            httponly=False,  # Changed to False for debugging
+            httponly=True,
             secure=False,  # False for localhost HTTP
-            samesite="none",  # "none" for cross-origin (localhost 3000 ↔ 8000)
+            samesite="lax",  # "lax" for local development
             path="/",
             max_age=JWT_ACCESS_TOKEN_EXPIRE_SECONDS,
         )
@@ -507,18 +509,19 @@ async def logout(
         await session.commit()
 
         # Clear cookies with matching parameters to ensure proper deletion
+        # IMPORTANT: Parameters MUST match the set_cookie parameters exactly
         response.delete_cookie(
             "Authorization",
-            httponly=True,
+            httponly=True,  # Must match set_cookie parameter
             secure=False,
-            samesite="lax",
+            samesite="lax",  # Must match set_cookie parameter
             path="/",
         )
         response.delete_cookie(
             "RefreshToken",
-            httponly=True,
+            httponly=True,  # Must match set_cookie parameter
             secure=False,
-            samesite="lax",
+            samesite="lax",  # Must match set_cookie parameter
             path="/",
         )
 

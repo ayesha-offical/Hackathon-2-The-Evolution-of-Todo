@@ -77,17 +77,29 @@ app = FastAPI(
 # CORS Middleware (Cross-Origin Resource Sharing)
 # Allows frontend to make requests to backend API
 # Allow both localhost:3000 and localhost:3001 for development (Next.js can use either port)
+
+# Build allowed origins list for local development
+# For development: Allow localhost on standard ports (3000, 3001)
+# For production: Only allow configured frontend URL
+if settings.is_production():
+    allowed_origins = [settings.frontend_url]
+else:
+    allowed_origins = [
+        "http://localhost:3000",    # Standard Next.js dev port
+        "http://localhost:3001",    # Alternative Next.js compiler port
+        "http://127.0.0.1:3000",    # Localhost IP variant
+        "http://127.0.0.1:3001",    # Localhost IP variant
+    ]
+    if settings.frontend_url and settings.frontend_url not in allowed_origins:
+        allowed_origins.append(settings.frontend_url)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://localhost:3001",
-        settings.frontend_url,  # Fallback to configured frontend URL
-    ],
+    allow_origins=allowed_origins,
     allow_credentials=True,                  # Allow cookies/authorization headers (CRITICAL for Better Auth)
-    allow_methods=["*"],                     # Allow all HTTP methods (GET, POST, OPTIONS, etc.)
-    allow_headers=["*"],                     # Allow all headers
-    expose_headers=["*"],                    # Expose all headers to client
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
+    expose_headers=["Content-Type", "Authorization"],
     max_age=600,                             # Cache preflight response for 10 minutes
 )
 
