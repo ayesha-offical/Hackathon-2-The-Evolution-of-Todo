@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "spec-kit": {
+      "command": "/home/ayeshafaisal/Hackaton_2/phase_2/.venv/bin/python3",
+      "args": [
+        "/home/ayeshafaisal/Hackaton_2/phase_2/mcp_server.py"
+      ],
+      "env": {}
+    }
+  }
+}

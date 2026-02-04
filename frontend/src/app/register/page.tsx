@@ -1,0 +1,489 @@
+/**
+ * Task: T060 | Spec: @specs/001-sdd-initialization/ui/pages.md §Registration Page
+ * Description: User registration page with form validation and email verification
+ * Purpose: Allow new users to create accounts with email and password
+ * Reference: Constitution II (JWT Bridge), rest-endpoints.md §POST /api/v1/auth/register
+ */
+
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
+import { authClient } from "@/lib/auth";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  ROUTES,
+  ERROR_MESSAGES,
+  PASSWORD_REQUIREMENTS,
+  EMAIL_REGEX,
+} from "@/config/constants";
+import { ANIMATION_VARIANTS, SPRING_CONFIGS } from "@/config/animations";
+import { PasswordInput } from "@/components/common/PasswordInput";
+import { ConfettiAnimation } from "@/components/ConfettiAnimation";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+
+/**
+ * Registration form validation schema
+ * Reference: @specs/001-sdd-initialization/features/authentication.md §FR-001-003
+ */
+const registerSchema = z
+  .object({
+    email: z
+      .string()
+      .email("Invalid email address")
+      .regex(EMAIL_REGEX, "Invalid email format"),
+    password: z
+      .string()
+      .min(
+        PASSWORD_REQUIREMENTS.MIN_LENGTH,
+        `Password must be at least ${PASSWORD_REQUIREMENTS.MIN_LENGTH} characters`
+      )
+      .regex(
+        PASSWORD_REQUIREMENTS.REGEX,
+        "Password must include uppercase letter, lowercase letter, and number"
+      ),
+    confirmPassword: z.string(),
+    terms: z
+      .boolean()
+      .refine((val) => val === true, "You must accept the terms and conditions"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: ERROR_MESSAGES.PASSWORDS_DO_NOT_MATCH,
+    path: ["confirmPassword"],
+  });
+
+type RegisterFormData = z.infer<typeof registerSchema>;
+
+/**
+ * Calculate password strength (0-100)
+ * Used for strength indicator
+ */
+function calculatePasswordStrength(password: string): number {
+  let strength = 0;
+
+  // Length (0-30 points)
+  strength += Math.min(password.length * 3, 30);
+
+  // Has uppercase (10 points)
+  if (/[A-Z]/.test(password)) strength += 10;
+
+  // Has lowercase (10 points)
+  if (/[a-z]/.test(password)) strength += 10;
+
+  // Has numbers (10 points)
+  if (/\d/.test(password)) strength += 10;
+
+  // Has special characters (30 points)
+  if (/[@$!%*?&]/.test(password)) strength += 30;
+
+  return Math.min(strength, 100);
+}
+
+/**
+ * Get password strength label and color
+ */
+function getPasswordStrengthLabel(
+  strength: number
+): { label: string; color: string } {
+  if (strength < 20) return { label: "Very Weak", color: "bg-red-500" };
+  if (strength < 40) return { label: "Weak", color: "bg-orange-500" };
+  if (strength < 60) return { label: "Fair", color: "bg-yellow-500" };
+  if (strength < 80) return { label: "Good", color: "bg-green-500" };
+  return { label: "Strong", color: "bg-green-600" };
+}
+
+/**
+ * Registration page component
+ *
+ * Features:
+ * - Email, password, confirm password inputs
+ * - Password strength indicator
+ * - Real-time validation with react-hook-form
+ * - Terms & conditions checkbox (required)
+ * - Submit to `/api/v1/auth/register` endpoint
+ * - Success message with verification instructions
+ * - Auto-redirect to login after 5 seconds
+ * - Responsive design
+ *
+ * Reference:
+ * - UI spec: @specs/001-sdd-initialization/ui/pages.md §Registration Page
+ * - API spec: rest-endpoints.md §POST /api/v1/auth/register
+ * - Auth flow: plan.md Step 4 §Frontend Authentication
+ */
+export default function RegisterPage() {
+  const router = useRouter();
+  const { user, isLoading: authLoading, logout } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [showConfetti, setShowConfetti] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors, isValid },
+  } = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
+    mode: "onChange",
+  });
+
+  const passwordValue = watch("password");
+
+  // Update password strength when password changes
+  const strength = calculatePasswordStrength(passwordValue || "");
+  const strengthLabel = getPasswordStrengthLabel(strength);
+
+  /**
+   * NOTE: We do NOT redirect authenticated users from signup page
+   * This allows users to create new accounts even if logged in,
+   * or provides better UX if they need to signup despite being authenticated
+   */
+
+  /**
+   * Handle form submission
+   * Call Better Auth signUp method with email and password
+   */
+  async function onSubmit(data: RegisterFormData) {
+    try {
+      setSubmitError(null);
+      setIsSubmitting(true);
+
+      console.debug('[Register] Attempting signup for:', data.email);
+      console.debug('[Register] API Base URL:', process.env.NEXT_PUBLIC_API_BASE_URL);
+      console.debug('[Register] Better Auth URL:', process.env.NEXT_PUBLIC_BETTER_AUTH_URL);
+
+      // Use Better Auth to sign up
+      // This sends request to /api/v1/auth/sign-up/email
+      console.debug('[Register] Calling authClient.signUp.email...');
+      const result = await authClient.signUp.email({
+        email: data.email,
+        password: data.password,
+        name: data.email.split("@")[0], // Use email username as name
+      });
+
+      console.debug('[Register] Signup response received:', result);
+
+      if (result && typeof result === 'object' && 'data' in result) {
+        // Registration successful
+        const resultData = (result as any).data;
+        console.debug('[Register] Signup successful for:', resultData?.user?.email || resultData?.email);
+
+        // Trigger confetti animation - will auto-redirect on completion
+        console.debug('[Register] Triggering celebratory confetti animation (T026)');
+        setShowConfetti(true);
+      } else {
+        console.error('[Register] No result returned from signup');
+        setSubmitError("Registration failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("[Register] Registration failed:", error);
+      console.error("[Register] Error type:", error?.constructor?.name);
+      console.error("[Register] Error message:", error instanceof Error ? error.message : String(error));
+      console.error("[Register] Full error object:", error);
+
+      // Extract error message
+      let errorMessage = "Registration failed";
+
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null && 'message' in error) {
+        errorMessage = (error as any).message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+
+      console.debug('[Register] Extracted error message:', errorMessage);
+
+      if (errorMessage.includes("already")) {
+        setSubmitError(ERROR_MESSAGES.EMAIL_ALREADY_REGISTERED);
+      } else if (errorMessage.includes("password")) {
+        setSubmitError(ERROR_MESSAGES.WEAK_PASSWORD);
+      } else if (errorMessage.includes("Failed to fetch")) {
+        setSubmitError(
+          "Cannot connect to backend. Make sure:\n1. Backend is running on http://localhost:8000\n2. You restarted frontend after changing env vars"
+        );
+      } else {
+        setSubmitError(errorMessage || "Registration failed. Please try again.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <motion.div
+        className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8"
+        variants={ANIMATION_VARIANTS.appear}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.div
+          className="w-full max-w-md space-y-8"
+          variants={ANIMATION_VARIANTS.listContainer}
+          initial="hidden"
+          animate="visible"
+        >
+          {/* Header */}
+          <motion.div className="text-center" variants={ANIMATION_VARIANTS.listItem}>
+            <motion.h1
+              className="text-3xl font-bold text-gray-900 dark:text-white"
+              variants={ANIMATION_VARIANTS.listItem}
+            >
+            Phase 2 Todo App
+          </motion.h1>
+          <motion.h2
+            className="mt-6 text-2xl font-bold text-gray-900 dark:text-white"
+            variants={ANIMATION_VARIANTS.listItem}
+          >
+            Create your account
+          </motion.h2>
+          <motion.p
+            className="mt-2 text-sm text-gray-600 dark:text-gray-400"
+            variants={ANIMATION_VARIANTS.listItem}
+          >
+            Or{" "}
+            <Link
+              href={ROUTES.LOGIN}
+              className="font-medium text-blue-600 hover:text-blue-500"
+            >
+              sign in to your existing account
+            </Link>
+          </motion.p>
+        </motion.div>
+
+        {/* Already Logged In Alert */}
+        <AnimatePresence mode="wait">
+          {!authLoading && user && (
+            <motion.div
+              className="rounded-md bg-blue-50 dark:bg-blue-900/20 p-4 border border-blue-200 dark:border-blue-800"
+              variants={ANIMATION_VARIANTS.slideInFromRight}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+            >
+              <p className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-3">
+                You are currently logged in as <strong>{user.email}</strong>
+              </p>
+              <motion.button
+                type="button"
+                onClick={logout}
+                className="text-sm text-blue-600 dark:text-blue-300 hover:text-blue-700 dark:hover:text-blue-200 underline font-medium"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Logout to create a different account →
+              </motion.button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Form */}
+        <AnimatePresence mode="wait">
+          {(
+            <motion.form
+              className="mt-8 space-y-6"
+              onSubmit={handleSubmit(onSubmit)}
+              variants={ANIMATION_VARIANTS.listContainer}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+            >
+              {/* Error alert */}
+              <AnimatePresence mode="wait">
+                {submitError && (
+                  <motion.div
+                    className="rounded-md bg-red-50 dark:bg-red-900/20 p-4 border border-red-200 dark:border-red-800"
+                    variants={ANIMATION_VARIANTS.slideInFromRight}
+                    initial="hidden"
+                    animate="visible"
+                    exit="hidden"
+                  >
+                    <p className="text-sm font-medium text-red-800 dark:text-red-200">
+                      {submitError}
+                    </p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Email field */}
+              <motion.div variants={ANIMATION_VARIANTS.listItem}>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Email address
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  {...register("email")}
+                  className="input mt-1"
+                  disabled={isSubmitting}
+                />
+                {errors.email && (
+                  <motion.p
+                    className="mt-1 text-sm text-red-600 dark:text-red-400"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={SPRING_CONFIGS.gentle}
+                  >
+                    {errors.email.message}
+                  </motion.p>
+                )}
+              </motion.div>
+
+              {/* Password field */}
+              <motion.div variants={ANIMATION_VARIANTS.listItem}>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Password
+                </label>
+                <PasswordInput
+                  id="password"
+                  placeholder="••••••••"
+                  disabled={isSubmitting}
+                  {...register("password")}
+                  className="mt-1"
+                />
+
+                {/* Password strength indicator */}
+                <AnimatePresence mode="wait">
+                  {passwordValue && (
+                    <motion.div
+                      className="mt-2"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={SPRING_CONFIGS.smooth}
+                    >
+                      <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400 mb-1">
+                        <span>Password strength:</span>
+                        <span className={strengthLabel.color.replace("bg-", "text-")}>
+                          {strengthLabel.label}
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <motion.div
+                          className={`${strengthLabel.color} h-2 rounded-full`}
+                          animate={{ width: `${strength}%` }}
+                          transition={SPRING_CONFIGS.smooth}
+                        />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {errors.password && (
+                  <motion.p
+                    className="mt-1 text-sm text-red-600 dark:text-red-400"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={SPRING_CONFIGS.gentle}
+                  >
+                    {errors.password.message}
+                  </motion.p>
+                )}
+              </motion.div>
+
+              {/* Confirm password field */}
+              <motion.div variants={ANIMATION_VARIANTS.listItem}>
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Confirm password
+                </label>
+                <PasswordInput
+                  id="confirmPassword"
+                  placeholder="••••••••"
+                  disabled={isSubmitting}
+                  {...register("confirmPassword")}
+                  className="mt-1"
+                />
+                {errors.confirmPassword && (
+                  <motion.p
+                    className="mt-1 text-sm text-red-600 dark:text-red-400"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={SPRING_CONFIGS.gentle}
+                  >
+                    {errors.confirmPassword.message}
+                  </motion.p>
+                )}
+              </motion.div>
+
+              {/* Terms checkbox */}
+              <motion.div className="flex items-center" variants={ANIMATION_VARIANTS.listItem}>
+                <input
+                  id="terms"
+                  type="checkbox"
+                  {...register("terms")}
+                  className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:bg-gray-800 dark:border-gray-600"
+                  disabled={isSubmitting}
+                />
+                <label htmlFor="terms" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                  I agree to the{" "}
+                  <a href="#" className="text-blue-600 hover:text-blue-500">
+                    Terms & Conditions
+                  </a>
+                </label>
+              </motion.div>
+              {errors.terms && (
+                <motion.p
+                  className="text-sm text-red-600 dark:text-red-400"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={SPRING_CONFIGS.gentle}
+                >
+                  {errors.terms.message}
+                </motion.p>
+              )}
+
+              {/* Submit button */}
+              <motion.button
+                type="submit"
+                disabled={!isValid || isSubmitting}
+                className="btn-primary w-full mt-4"
+                variants={ANIMATION_VARIANTS.buttonTap}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                transition={SPRING_CONFIGS.primary}
+              >
+                {isSubmitting ? "Creating account..." : "Sign up"}
+              </motion.button>
+            </motion.form>
+          )}
+        </AnimatePresence>
+
+        {/* Footer links */}
+        <AnimatePresence>
+          <motion.div
+            className="text-center"
+            variants={ANIMATION_VARIANTS.listItem}
+            initial="hidden"
+            animate="visible"
+          >
+            <p className="text-xs text-gray-500 dark:text-gray-500">
+              By creating an account, you agree to our Terms & Conditions and
+              Privacy Policy
+            </p>
+          </motion.div>
+        </AnimatePresence>
+      </motion.div>
+
+      {/* T026, T027: Celebratory confetti animation with error boundary (2.5s) */}
+      <ErrorBoundary
+        onError={(error) => {
+          console.error('[Register] Confetti error caught by boundary:', error);
+          // Fallback: redirect immediately if confetti fails
+          router.push(ROUTES.LOGIN);
+        }}
+      >
+        <ConfettiAnimation
+          isActive={showConfetti}
+          onComplete={() => router.push(ROUTES.LOGIN)}
+          duration={2500}
+        />
+      </ErrorBoundary>
+    </motion.div>
+  );
+}
