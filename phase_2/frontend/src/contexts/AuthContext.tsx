@@ -11,7 +11,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { apiCall } from "@/lib/api";
 import { ROUTES } from "@/config/constants";
-import type { User, AuthContextType, BetterAuthSessionResponse } from "@/types/auth";
+import type { AuthUser, AuthContextType, BetterAuthSessionResponse } from "@/types/auth";
 
 /**
  * AuthContext for storing authentication state
@@ -46,7 +46,7 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
  */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -64,59 +64,96 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    * Called on mount and can be called manually to refresh
    * Uses direct API call to ensure JWT token is properly sent with credentials (HTTP-only cookies included via credentials: 'include')
    * Constitution II: JWT tokens are stored in HTTP-only cookies and automatically sent by fetch API
+   *
+   * Error handling:
+   * - Network errors: Assume unauthenticated (token may have expired)
+   * - Non-200 response: User not authenticated
+   * - Valid response with no user: User not authenticated
+   * - Valid response with user: User authenticated
+   *
+   * CRITICAL: Always sets isLoading to false in finally block to prevent infinite loading state
    */
   async function checkSession() {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
       console.debug('[Auth] Checking Better Auth session from:', `${apiUrl}/api/v1/auth/get-session`);
 
-      // Call get-session endpoint with credentials to include HTTP-only cookies (Better Auth)
-      const response = await fetch(`${apiUrl}/api/v1/auth/get-session`, {
-        method: 'GET',
-        credentials: 'include', // CRITICAL: Include HTTP-only cookies (Better Auth session) in request
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      // Create abort controller to prevent hanging indefinitely
+      const controller = new AbortController();
+      // Timeout after 8 seconds - allows sufficient time but prevents forever hanging
+      const timeoutId = setTimeout(() => {
+        console.warn('[Auth] Session check timeout after 8s - backend may be slow/down');
+        controller.abort();
+      }, 8000);
 
-      console.debug('[Auth] Session check response status:', response.status);
+      try {
+        // Call get-session endpoint with credentials to include HTTP-only cookies (Better Auth)
+        const response = await fetch(`${apiUrl}/api/v1/auth/get-session`, {
+          method: 'GET',
+          credentials: 'include', // CRITICAL: Include HTTP-only cookies (Better Auth session) in request
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          signal: controller.signal,
+        });
 
-      if (!response.ok) {
-        console.debug('[Auth] Session check failed with status:', response.status);
-        setUser(null);
-        setIsError(false);
-        setError(null);
-        setIsLoading(false);
-        return;
-      }
+        clearTimeout(timeoutId);
+        console.debug('[Auth] Session check response status:', response.status);
 
-      const sessionData = (await response.json()) as unknown as BetterAuthSessionResponse;
-      console.debug('[Auth] Session data received:', sessionData);
+        if (!response.ok) {
+          console.debug('[Auth] Session check failed with status:', response.status);
+          setUser(null);
+          setIsError(false);
+          setError(null);
+          return;
+        }
 
-      // Check for user in response - handle both direct and nested structures
-      const user = sessionData?.user || sessionData?.data?.user;
+        const sessionData = (await response.json()) as unknown as BetterAuthSessionResponse;
+        console.debug('[Auth] Session data received:', sessionData);
 
-      if (user && user.id) {
-        // User is authenticated - set user data
-        console.debug('[Auth] User authenticated:', user.email);
-        setUser(user as User);
-        setIsError(false);
-        setError(null);
-      } else {
-        // User is not authenticated - no user in response
-        console.debug('[Auth] No user in session response');
+        // Check for user in response - handle both direct and nested structures
+        const user = sessionData?.user || sessionData?.data?.user;
+
+        if (user && user.id) {
+          // User is authenticated - set user data
+          console.debug('[Auth] User authenticated:', user.email);
+          setUser(user as AuthUser);
+          setIsError(false);
+          setError(null);
+        } else {
+          // User is not authenticated - no user in response
+          console.debug('[Auth] No user in session response');
+          setUser(null);
+          setIsError(false);
+          setError(null);
+        }
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+
+        if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+          console.warn('[Auth] Session check timeout - backend may be unresponsive or overloaded');
+          // On timeout, assume not authenticated but log the issue
+        } else if (fetchError instanceof Error) {
+          console.warn('[Auth] Session check network error:', fetchError.message);
+        } else {
+          console.warn('[Auth] Session check error:', fetchError);
+        }
+
+        // Network error or timeout - assume unauthenticated but don't set error flag
+        // This prevents the "error loading session" state and allows graceful fallback to login
         setUser(null);
         setIsError(false);
         setError(null);
       }
     } catch (error) {
-      // Session check failed (network error, JWT expired, etc.)
-      // User is not authenticated
-      console.debug('[Auth] Session check error:', error);
+      // Outer catch for any unexpected errors
+      console.error('[Auth] Unexpected error in checkSession:', error);
       setUser(null);
       setIsError(false);
       setError(null);
     } finally {
+      // CRITICAL: Always set loading to false, even if isLoaded wasn't set
+      // This prevents the dashboard from stuck in infinite loading state
       setIsLoading(false);
     }
   }

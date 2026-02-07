@@ -72,7 +72,8 @@ class Settings(BaseSettings):
 
     class Config:
         """Pydantic configuration"""
-        env_file = ".env.local"  # Load from .env.local in development
+        # Try .env and .env.local in backend dir; also parent .env when run from backend/
+        env_file = (".env", ".env.local", "../.env")
         case_sensitive = False   # Allow both DATABASE_URL and database_url
         str_strip_whitespace = True
         extra = "ignore"  # Ignore extra environment variables not in model
@@ -101,7 +102,7 @@ try:
 except Exception as e:
     raise RuntimeError(
         f"Failed to load settings from environment. "
-        f"Ensure .env.local exists and contains DATABASE_URL and BETTER_AUTH_SECRET. "
+        f"Ensure .env or .env.local exists (in backend/ or project root) with DATABASE_URL and BETTER_AUTH_SECRET. "
         f"Error: {e}"
     )
 

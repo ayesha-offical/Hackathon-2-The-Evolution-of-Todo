@@ -176,6 +176,7 @@ export const ERROR_MESSAGES = {
  */
 export const ROUTES = {
   HOME: '/',
+  CONTACT: '/contact',
   LOGIN: '/login',
   REGISTER: '/register',
   FORGOT_PASSWORD: '/forgot-password',

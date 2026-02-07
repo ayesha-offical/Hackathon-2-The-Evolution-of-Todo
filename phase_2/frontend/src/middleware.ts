@@ -50,13 +50,26 @@ const AUTH_ROUTES = [
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Get session cookies
-  // Backend sets 'Authorization' cookie with JWT token
-  // Better Auth may also use other cookie names (auth.*, session, etc.)
-  const hasSession = request.cookies.has('Authorization') ||
-                     request.cookies.has('RefreshToken') ||
-                     request.cookies.has('better-auth.session_token') ||
-                     request.cookies.has('auth.session');
+  // Check for authentication cookies set by backend
+  // The backend sets: Authorization (with Bearer prefix) and RefreshToken
+  // Reference: backend/src/api/v1/auth.py §set_cookie with keys "Authorization" and "RefreshToken"
+  const hasAuthorizationCookie = request.cookies.has('Authorization');
+  const hasRefreshToken = request.cookies.has('RefreshToken');
+
+  // Session exists if we have the Authorization cookie (access token)
+  // RefreshToken serves as a backup indicator
+  const hasSession = hasAuthorizationCookie || hasRefreshToken;
+
+  // Log for debugging (only in development)
+  if (process.env.NODE_ENV === 'development') {
+    const cookieNames = request.cookies.getSetCookie?.() || [];
+    const allCookies = request.cookies.getAll();
+    console.debug('[Middleware] Checking route:', pathname);
+    console.debug('[Middleware] All cookies:', allCookies.map(c => c.name).join(', '));
+    console.debug('[Middleware] Has session:', hasSession,
+      '(Authorization:', hasAuthorizationCookie,
+      ', RefreshToken:', hasRefreshToken + ')');
+  }
 
   // Check if current path is a protected route
   const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname.startsWith(route));
@@ -69,6 +82,9 @@ export function middleware(request: NextRequest) {
    * If accessing protected route without session, redirect to login
    */
   if (isProtectedRoute && !hasSession) {
+    if (process.env.NODE_ENV === 'development') {
+      console.debug('[Middleware] Protected route without session, redirecting to /login');
+    }
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
@@ -77,6 +93,9 @@ export function middleware(request: NextRequest) {
    * This prevents already-logged-in users from seeing login/register pages
    */
   if (isAuthRoute && hasSession) {
+    if (process.env.NODE_ENV === 'development') {
+      console.debug('[Middleware] Auth route with session, redirecting to /dashboard');
+    }
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 

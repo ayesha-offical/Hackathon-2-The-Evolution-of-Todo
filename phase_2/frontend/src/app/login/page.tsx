@@ -1,10 +1,3 @@
-/**
- * Task: T059 | Spec: @specs/001-sdd-initialization/ui/pages.md §Login Page
- * Description: User login page with form validation
- * Purpose: Allow registered users to authenticate and receive JWT tokens
- * Reference: Constitution II (JWT Bridge), rest-endpoints.md §POST /api/v1/auth/login
- */
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -18,45 +11,30 @@ import { authClient } from "@/lib/auth";
 import { useAuth } from "@/contexts/AuthContext";
 import { ROUTES, ERROR_MESSAGES, EMAIL_REGEX } from "@/config/constants";
 import { PasswordInput } from "@/components/common/PasswordInput";
-import { ANIMATION_VARIANTS, SPRING_CONFIGS } from "@/config/animations";
-import type { BetterAuthSignInResponse } from "@/types/auth";
+import { ConfettiAnimation } from "@/components/ConfettiAnimation";
 
-/**
- * Login form validation schema
- * Reference: @specs/001-sdd-initialization/features/authentication.md §FR-005
- */
 const loginSchema = z.object({
-  email: z
-    .string()
-    .email("Invalid email address")
-    .regex(EMAIL_REGEX, "Invalid email format"),
-  password: z
-    .string()
-    .min(1, "Password is required"),
+  email: z.string().email("Invalid email address").regex(EMAIL_REGEX, "Invalid email format"),
+  password: z.string().min(1, "Password is required"),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
-/**
- * Login page component
- */
 export default function LoginPage() {
   const router = useRouter();
   const { user, isLoading: authLoading, refreshSession } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [showConfetti, setShowConfetti] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isValid },
-  } = useForm<LoginFormData>({
+  const { register, handleSubmit, formState: { errors, isValid } } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     mode: "onChange",
   });
 
   /**
-   * Redirect if already authenticated
+   * Redirect authenticated users to dashboard
+   * Show loading screen while checking authentication status
    */
   useEffect(() => {
     if (!authLoading && user) {
@@ -65,199 +43,132 @@ export default function LoginPage() {
   }, [authLoading, user, router]);
 
   /**
-   * Handle form submission
+   * Show loading screen while checking if user is authenticated
    */
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#030712]">
+        <div className="relative">
+          <div className="w-16 h-16 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin"></div>
+          <div className="absolute inset-0 blur-xl bg-cyan-500/20 animate-pulse"></div>
+        </div>
+      </div>
+    );
+  }
+
   async function onSubmit(data: LoginFormData) {
     try {
       setSubmitError(null);
       setIsSubmitting(true);
-
-      console.debug('[Login] Attempting login for:', data.email);
-
-      // Call Better Auth to sign in
-      const result = (await authClient.signIn.email({
+      const result = await authClient.signIn.email({
         email: data.email,
         password: data.password,
-      })) as unknown as BetterAuthSignInResponse;
+      });
 
-      console.debug('[Login] Response received:', result);
-
-      if (result && (result.user || result.data?.user)) {
-        console.debug('[Login] User authenticated via Better Auth');
-
-        // Better Auth handles token storage via HTTP-only cookies automatically
-        // No manual token extraction or storage needed
-        console.debug('[Login] Better Auth session established (cookie-based)');
-
-        // Refresh session to load authenticated user state
+      if (result && result.data) {
         await refreshSession();
-
-        // Redirect to dashboard
-        setTimeout(() => {
-          router.push(ROUTES.DASHBOARD);
-        }, 500);
+        setShowConfetti(true);
       } else {
-        console.error('[Login] Login failed - no user in response:', result);
         setSubmitError(ERROR_MESSAGES.INVALID_CREDENTIALS);
       }
     } catch (error) {
-      console.error("[Login] Login failed:", error);
       const errorMessage = error instanceof Error ? error.message : ERROR_MESSAGES.INVALID_CREDENTIALS;
-      if (errorMessage.includes("Failed to fetch")) {
-        setSubmitError("Cannot connect to backend. Make sure backend is running on http://localhost:8000");
-      } else {
-        setSubmitError(errorMessage);
-      }
+      setSubmitError(errorMessage.includes("Failed to fetch") ? "Connection error" : errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   }
 
   return (
-    <motion.div
-      className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8"
-      variants={ANIMATION_VARIANTS.appear}
-      initial="hidden"
-      animate="visible"
-    >
-      <motion.div
-        className="w-full max-w-md space-y-8"
-        variants={ANIMATION_VARIANTS.listContainer}
-        initial="hidden"
-        animate="visible"
-      >
-        {/* Header */}
-        <motion.div className="text-center" variants={ANIMATION_VARIANTS.listItem}>
-          <motion.h1
-            className="text-3xl font-bold text-gray-900 dark:text-white"
-            variants={ANIMATION_VARIANTS.listItem}
-          >
-            Phase 2 Todo App
-          </motion.h1>
-          <motion.h2
-            className="mt-6 text-2xl font-bold text-gray-900 dark:text-white"
-            variants={ANIMATION_VARIANTS.listItem}
-          >
-            Sign in to your account
-          </motion.h2>
-          <motion.p
-            className="mt-2 text-sm text-gray-600 dark:text-gray-400"
-            variants={ANIMATION_VARIANTS.listItem}
-          >
-            Or{" "}
-            <Link
-              href={ROUTES.REGISTER}
-              className="font-medium text-blue-600 hover:text-blue-500"
-            >
-              create a new account
-            </Link>
-          </motion.p>
-        </motion.div>
+    <>
+      {showConfetti && (
+        <ConfettiAnimation
+          isActive={showConfetti}
+          onComplete={() => router.push(ROUTES.DASHBOARD)}
+          duration={2000}
+        />
+      )}
 
-        {/* Form */}
-        <motion.form
-          className="mt-8 space-y-6"
-          onSubmit={handleSubmit(onSubmit)}
-          variants={ANIMATION_VARIANTS.listContainer}
-          initial="hidden"
-          animate="visible"
+      <div className="min-h-screen flex items-center justify-center bg-[#030712] relative overflow-hidden px-4 pt-16">
+        {/* Background Glows */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+          <div className="absolute top-[-10%] left-[-10%] w-[30%] h-[30%] bg-blue-600/5 blur-[100px] rounded-full" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-cyan-600/5 blur-[100px] rounded-full" />
+        </div>
+
+        <motion.div
+          className="w-full max-w-[380px] relative z-10" // Reduced width here
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
         >
-          {/* Error alert */}
-          <AnimatePresence mode="wait">
-            {submitError && (
-              <motion.div
-                className="rounded-md bg-red-50 dark:bg-red-900/20 p-4 border border-red-200 dark:border-red-800"
-                variants={ANIMATION_VARIANTS.slideInFromRight}
-                initial="hidden"
-                animate="visible"
-                exit="hidden"
-              >
-                <p className="text-sm font-medium text-red-800 dark:text-red-200">
+          <div className="p-6 sm:p-8 rounded-[2rem] bg-white/[0.02] border border-white/10 backdrop-blur-3xl shadow-2xl">
+            <div className="text-center mb-6">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center font-black text-white italic mx-auto mb-3 shadow-lg">
+                F
+              </div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 via-white to-cyan-400 bg-clip-text text-transparent">
+                Welcome Back
+              </h1>
+            </div>
+
+            <AnimatePresence>
+              {submitError && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-[11px] text-center font-medium"
+                >
                   {submitError}
-                </p>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-          {/* Email field */}
-          <motion.div variants={ANIMATION_VARIANTS.listItem}>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Email address
-            </label>
-            <input
-              id="email"
-              type="email"
-              placeholder="you@example.com"
-              {...register("email")}
-              className="input mt-1"
-              disabled={isSubmitting}
-            />
-            {errors.email && (
-              <motion.p
-                className="mt-1 text-sm text-red-600 dark:text-red-400"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={SPRING_CONFIGS.gentle}
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <div>
+                <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 ml-1">Email</label>
+                <input
+                  {...register("email")}
+                  type="email"
+                  placeholder="Email"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-cyan-500/50 transition-all placeholder:text-gray-700"
+                  disabled={isSubmitting}
+                />
+                {errors.email && <p className="text-red-500 text-[10px] mt-1 ml-1">{errors.email.message}</p>}
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 ml-1">Password</label>
+                <PasswordInput
+                  {...register("password")}
+                  placeholder="Password"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-cyan-500/50 transition-all"
+                  disabled={isSubmitting}
+                />
+                {errors.password && <p className="text-red-500 text-[10px] mt-1 ml-1">{errors.password.message}</p>}
+              </div>
+
+              <motion.button
+                type="submit"
+                disabled={!isValid || isSubmitting}
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl text-white text-sm font-bold shadow-lg mt-2 disabled:opacity-40 transition-all"
               >
-                {errors.email.message}
-              </motion.p>
-            )}
-          </motion.div>
+                {isSubmitting ? "Signing in..." : "Sign In"}
+              </motion.button>
+            </form>
 
-          {/* Password field */}
-          <motion.div variants={ANIMATION_VARIANTS.listItem}>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Password
-            </label>
-            <PasswordInput
-              id="password"
-              placeholder="••••••••"
-              disabled={isSubmitting}
-              {...register("password")}
-              className="mt-1"
-            />
-            {errors.password && (
-              <motion.p
-                className="mt-1 text-sm text-red-600 dark:text-red-400"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={SPRING_CONFIGS.gentle}
-              >
-                {errors.password.message}
-              </motion.p>
-            )}
-          </motion.div>
-
-          {/* Submit button */}
-          <motion.button
-            type="submit"
-            disabled={!isValid || isSubmitting}
-            className="btn-primary w-full mt-4"
-            variants={ANIMATION_VARIANTS.buttonTap}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            transition={SPRING_CONFIGS.primary}
-          >
-            {isSubmitting ? "Signing in..." : "Sign in"}
-          </motion.button>
-        </motion.form>
-
-        {/* Footer links */}
-        <motion.div className="text-center space-y-2" variants={ANIMATION_VARIANTS.listItem}>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Forgot your password?{" "}
-            <Link
-              href={ROUTES.FORGOT_PASSWORD}
-              className="font-medium text-blue-600 hover:text-blue-500"
-            >
-              Reset it here
-            </Link>
-          </p>
-          <p className="text-xs text-gray-500 dark:text-gray-500">
-            By signing in, you agree to our Terms & Conditions
-          </p>
+            <div className="mt-6 text-center">
+              <p className="text-xs text-gray-500">
+                New here?{" "}
+                <Link href={ROUTES.REGISTER} className="text-cyan-400 font-bold hover:underline">
+                  Create Account
+                </Link>
+              </p>
+            </div>
+          </div>
         </motion.div>
-      </motion.div>
-    </motion.div>
+      </div>
+    </>
   );
 }

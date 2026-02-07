@@ -180,6 +180,22 @@ export const ANIMATION_VARIANTS = {
   },
 
   /**
+   * Slide In From Bottom
+   * For content entering from below (e.g. hero text)
+   */
+  slideInFromBottom: {
+    hidden: {
+      y: 40,
+      opacity: 0,
+    },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: SPRING_CONFIGS.primary,
+    },
+  },
+
+  /**
    * Fade In Animation
    * Simple opacity transition without movement
    */

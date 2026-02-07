@@ -91,8 +91,13 @@ async def init_db() -> None:
     Requires all SQLModel entities to be imported before calling.
     """
     async with engine.begin() as conn:
-        # Import Base to ensure all models are registered
+        # Import all models to ensure they're registered with SQLModel
         from sqlmodel import SQLModel
+        from src.models.user import User  # noqa: F401
+        from src.models.task import Task  # noqa: F401
+        from src.models.refresh_token import RefreshToken  # noqa: F401
+        from src.models.contact_message import ContactMessage  # noqa: F401
+
         await conn.run_sync(SQLModel.metadata.create_all)
 
 

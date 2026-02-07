@@ -69,6 +69,8 @@ PUBLIC_ENDPOINTS = {
     "/api/v1/auth/sign-up/email",
     "/api/v1/auth/sign-in/email",
     "/api/v1/auth/get-session",
+    # Contact form endpoint (public - unauthenticated users can submit)
+    "/api/v1/messages/contact",
     # Documentation endpoints
     "/docs",
     "/redoc",

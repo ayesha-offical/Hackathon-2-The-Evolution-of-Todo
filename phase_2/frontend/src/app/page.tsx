@@ -1,62 +1,24 @@
-'use client';
+/**
+ * Task: T013 | Spec: @specs/002-landing-page-ui/spec.md §User Story 1
+ * Description: Professional landing page with Hero, About, Features, and Contact sections
+ * Purpose: Provide engaging entry point for new users with FocusHub branding
+ * Reference: plan.md §Landing Page Component, tasks.md §Phase 3
+ */
 
-import { motion } from 'framer-motion';
-import { ANIMATION_VARIANTS } from '@/config/animations';
+import { Metadata } from 'next';
+import LandingPage from '@/components/LandingPage';
+import AnimatedPage from '@/components/AnimatedPage';
+
+export const metadata: Metadata = {
+  title: 'FocusHub - Professional Focus Management, Simplified',
+  description: 'Professional focus management platform for staying organized and productive. Streamline your workflow with intelligent task management.',
+  keywords: 'focus, task management, productivity, organization, FocusHub',
+};
 
 export default function Home() {
   return (
-    <motion.main
-      className="page-container flex min-h-screen flex-col items-center justify-center p-6 sm:p-24"
-      variants={ANIMATION_VARIANTS.listContainer}
-      initial="hidden"
-      animate="visible"
-    >
-      <div className="text-center max-w-2xl">
-        <motion.h1
-          className="text-4xl sm:text-6xl font-bold mb-4 bg-gradient-primary bg-clip-text text-transparent"
-          variants={ANIMATION_VARIANTS.listItem}
-          initial="hidden"
-          animate="visible"
-        >
-          FocusHub
-        </motion.h1>
-        <motion.p
-          className="text-lg sm:text-xl text-text-secondary mb-8"
-          variants={ANIMATION_VARIANTS.listItem}
-          initial="hidden"
-          animate="visible"
-        >
-          Full-stack todo application with JWT authentication
-        </motion.p>
-
-        <motion.div
-          className="space-y-4 mb-12"
-          variants={ANIMATION_VARIANTS.listItem}
-          initial="hidden"
-          animate="visible"
-        >
-          <p className="text-success-light font-semibold">
-            ✅ Frontend setup complete!
-          </p>
-          <p className="text-sm text-text-muted">
-            Start managing your tasks with FocusHub
-          </p>
-        </motion.div>
-
-        <motion.div
-          className="mt-12 space-y-3"
-          variants={ANIMATION_VARIANTS.listItem}
-          initial="hidden"
-          animate="visible"
-        >
-          <p className="text-sm font-mono bg-background-elevated/80 backdrop-blur-sm border border-border p-4 rounded-lg">
-            API Base URL: {process.env.NEXT_PUBLIC_API_BASE_URL}
-          </p>
-          <p className="text-xs text-text-muted">
-            Backend running on http://localhost:8000
-          </p>
-        </motion.div>
-      </div>
-    </motion.main>
+    <AnimatedPage>
+      <LandingPage />
+    </AnimatedPage>
   );
 }

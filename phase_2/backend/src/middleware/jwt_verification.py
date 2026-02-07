@@ -57,8 +57,13 @@ class JWTVerificationMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         # Skip verification for public endpoints
-        if request.url.path in self.PUBLIC_ENDPOINTS:
+        request_path = request.url.path
+        if request_path in self.PUBLIC_ENDPOINTS:
+            logger.debug(f"Public endpoint accessed: {request_path}")
             return await call_next(request)
+
+        # Log denied path for debugging
+        logger.debug(f"Protected endpoint check: path='{request_path}', in_public={request_path in self.PUBLIC_ENDPOINTS}")
 
         # Extract token from Authorization header OR from Authorization cookie
         auth_header = request.headers.get("Authorization", "")

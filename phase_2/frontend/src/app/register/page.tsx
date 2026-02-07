@@ -1,7 +1,8 @@
 /**
  * Task: T060 | Spec: @specs/001-sdd-initialization/ui/pages.md §Registration Page
- * Description: User registration page with form validation and email verification
- * Purpose: Allow new users to create accounts with email and password
+ * Task: T026 | Spec: @specs/002-landing-page-ui/spec.md §User Story 3
+ * Description: User registration page with form validation and celebratory animation
+ * Purpose: Allow new users to create accounts with email and password with celebratory feedback
  * Reference: Constitution II (JWT Bridge), rest-endpoints.md §POST /api/v1/auth/register
  */
 
@@ -22,7 +23,7 @@ import {
   PASSWORD_REQUIREMENTS,
   EMAIL_REGEX,
 } from "@/config/constants";
-import { ANIMATION_VARIANTS, SPRING_CONFIGS } from "@/config/animations";
+import { ConfettiAnimation } from "@/components/ConfettiAnimation";
 import { PasswordInput } from "@/components/common/PasswordInput";
 
 /**
@@ -63,62 +64,23 @@ type RegisterFormData = z.infer<typeof registerSchema>;
  */
 function calculatePasswordStrength(password: string): number {
   let strength = 0;
-
-  // Length (0-30 points)
-  strength += Math.min(password.length * 3, 30);
-
-  // Has uppercase (10 points)
-  if (/[A-Z]/.test(password)) strength += 10;
-
-  // Has lowercase (10 points)
-  if (/[a-z]/.test(password)) strength += 10;
-
-  // Has numbers (10 points)
-  if (/\d/.test(password)) strength += 10;
-
-  // Has special characters (30 points)
-  if (/[@$!%*?&]/.test(password)) strength += 30;
-
-  return Math.min(strength, 100);
-}
-
-/**
- * Get password strength label and color
- */
-function getPasswordStrengthLabel(
-  strength: number
-): { label: string; color: string } {
-  if (strength < 20) return { label: "Very Weak", color: "bg-red-500" };
-  if (strength < 40) return { label: "Weak", color: "bg-orange-500" };
-  if (strength < 60) return { label: "Fair", color: "bg-yellow-500" };
-  if (strength < 80) return { label: "Good", color: "bg-green-500" };
-  return { label: "Strong", color: "bg-green-600" };
+  if (password.length >= 8) strength += 25;
+  if (/[A-Z]/.test(password)) strength += 25;
+  if (/[0-9]/.test(password)) strength += 25;
+  if (/[^A-Za-z0-9]/.test(password)) strength += 25;
+  return strength;
 }
 
 /**
  * Registration page component
- *
- * Features:
- * - Email, password, confirm password inputs
- * - Password strength indicator
- * - Real-time validation with react-hook-form
- * - Terms & conditions checkbox (required)
- * - Submit to `/api/v1/auth/register` endpoint
- * - Success message with verification instructions
- * - Auto-redirect to login after 5 seconds
- * - Responsive design
- *
- * Reference:
- * - UI spec: @specs/001-sdd-initialization/ui/pages.md §Registration Page
- * - API spec: rest-endpoints.md §POST /api/v1/auth/register
- * - Auth flow: plan.md Step 4 §Frontend Authentication
+ * Styling: Modern Neon Dark Theme
  */
 export default function RegisterPage() {
   const router = useRouter();
-  const { user, isLoading: authLoading, logout } = useAuth();
+  const { user, isLoading: authLoading, logout, refreshSession } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const {
     register,
@@ -130,17 +92,32 @@ export default function RegisterPage() {
     mode: "onChange",
   });
 
-  const passwordValue = watch("password");
-
-  // Update password strength when password changes
-  const strength = calculatePasswordStrength(passwordValue || "");
-  const strengthLabel = getPasswordStrengthLabel(strength);
+  const passwordValue = watch("password") || "";
+  const strength = calculatePasswordStrength(passwordValue);
 
   /**
-   * NOTE: We do NOT redirect authenticated users from signup page
-   * This allows users to create new accounts even if logged in,
-   * or provides better UX if they need to signup despite being authenticated
+   * Redirect authenticated users to dashboard
+   * Prevents already-logged-in users from seeing registration page
    */
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.push(ROUTES.DASHBOARD);
+    }
+  }, [authLoading, user, router]);
+
+  /**
+   * Show loading screen while checking if user is authenticated
+   */
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#030712]">
+        <div className="relative">
+          <div className="w-16 h-16 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin"></div>
+          <div className="absolute inset-0 blur-xl bg-cyan-500/20 animate-pulse"></div>
+        </div>
+      </div>
+    );
+  }
 
   /**
    * Handle form submission
@@ -151,344 +128,169 @@ export default function RegisterPage() {
       setSubmitError(null);
       setIsSubmitting(true);
 
-      console.debug('[Register] Attempting signup for:', data.email);
-      console.debug('[Register] API Base URL:', process.env.NEXT_PUBLIC_API_BASE_URL);
-      console.debug('[Register] Better Auth URL:', process.env.NEXT_PUBLIC_BETTER_AUTH_URL);
-
-      // Use Better Auth to sign up
-      // This sends request to /api/v1/auth/sign-up/email
-      console.debug('[Register] Calling authClient.signUp.email...');
       const result = await authClient.signUp.email({
         email: data.email,
         password: data.password,
-        name: data.email.split("@")[0], // Use email username as name
+        name: data.email.split("@")[0],
       });
 
-      console.debug('[Register] Signup response received:', result);
-
       if (result) {
-        // Registration successful
-        console.debug('[Register] Signup successful for:', result.user?.email || result.email);
-        setSuccessMessage(
-          "Account created! Redirecting to login..."
-        );
-
-        // Redirect to login after 2 seconds
-        setTimeout(() => {
-          router.push(ROUTES.LOGIN);
-        }, 2000);
-      } else {
-        console.error('[Register] No result returned from signup');
-        setSubmitError("Registration failed. Please try again.");
+        await refreshSession();
+        setShowConfetti(true);
       }
-    } catch (error) {
-      console.error("[Register] Registration failed:", error);
-      console.error("[Register] Error type:", error?.constructor?.name);
-      console.error("[Register] Error message:", error instanceof Error ? error.message : String(error));
-      console.error("[Register] Full error object:", error);
-
-      // Extract error message
-      let errorMessage = "Registration failed";
-
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      } else if (typeof error === 'object' && error !== null && 'message' in error) {
-        errorMessage = (error as any).message;
-      } else if (typeof error === 'string') {
-        errorMessage = error;
-      }
-
-      console.debug('[Register] Extracted error message:', errorMessage);
-
-      if (errorMessage.includes("already")) {
-        setSubmitError(ERROR_MESSAGES.EMAIL_ALREADY_REGISTERED);
-      } else if (errorMessage.includes("password")) {
-        setSubmitError(ERROR_MESSAGES.WEAK_PASSWORD);
-      } else if (errorMessage.includes("Failed to fetch")) {
-        setSubmitError(
-          "Cannot connect to backend. Make sure:\n1. Backend is running on http://localhost:8000\n2. You restarted frontend after changing env vars"
-        );
-      } else {
-        setSubmitError(errorMessage || "Registration failed. Please try again.");
-      }
+    } catch (error: any) {
+      setSubmitError(error.message || "Registration failed");
     } finally {
       setIsSubmitting(false);
     }
   }
 
   return (
-    <motion.div
-      className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8"
-      variants={ANIMATION_VARIANTS.appear}
-      initial="hidden"
-      animate="visible"
-    >
-      <motion.div
-        className="w-full max-w-md space-y-8"
-        variants={ANIMATION_VARIANTS.listContainer}
-        initial="hidden"
-        animate="visible"
-      >
-        {/* Header */}
-        <motion.div className="text-center" variants={ANIMATION_VARIANTS.listItem}>
-          <motion.h1
-            className="text-3xl font-bold text-gray-900 dark:text-white"
-            variants={ANIMATION_VARIANTS.listItem}
-          >
-            Phase 2 Todo App
-          </motion.h1>
-          <motion.h2
-            className="mt-6 text-2xl font-bold text-gray-900 dark:text-white"
-            variants={ANIMATION_VARIANTS.listItem}
-          >
-            Create your account
-          </motion.h2>
-          <motion.p
-            className="mt-2 text-sm text-gray-600 dark:text-gray-400"
-            variants={ANIMATION_VARIANTS.listItem}
-          >
-            Or{" "}
-            <Link
-              href={ROUTES.LOGIN}
-              className="font-medium text-blue-600 hover:text-blue-500"
-            >
-              sign in to your existing account
-            </Link>
-          </motion.p>
-        </motion.div>
+    <>
+      {/* Confetti Animation */}
+      {showConfetti && (
+        <ConfettiAnimation
+          isActive={showConfetti}
+          onComplete={() => router.push(ROUTES.DASHBOARD)}
+          duration={2000}
+        />
+      )}
 
-        {/* Already Logged In Alert */}
-        <AnimatePresence mode="wait">
-          {!authLoading && user && (
-            <motion.div
-              className="rounded-md bg-blue-50 dark:bg-blue-900/20 p-4 border border-blue-200 dark:border-blue-800"
-              variants={ANIMATION_VARIANTS.slideInFromRight}
-              initial="hidden"
-              animate="visible"
-              exit="hidden"
-            >
-              <p className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-3">
-                You are currently logged in as <strong>{user.email}</strong>
+      <div className="min-h-screen flex items-center justify-center bg-[#030712] relative overflow-hidden px-4 pt-20 pb-10">
+        {/* Decorative Background Glows */}
+        <div className="absolute top-[-5%] right-[-5%] w-[30%] h-[30%] bg-blue-600/10 blur-[100px] rounded-full" />
+        <div className="absolute bottom-[-5%] left-[-5%] w-[30%] h-[30%] bg-cyan-600/10 blur-[100px] rounded-full" />
+
+        <motion.div 
+          className="w-full max-w-[400px] relative z-10" 
+          initial={{ opacity: 0, y: 15 }} 
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div className="p-6 sm:p-8 rounded-[2rem] bg-white/[0.02] border border-white/10 backdrop-blur-3xl shadow-2xl">
+            {/* Header */}
+            <div className="text-center mb-6">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center font-black text-white italic mx-auto mb-3 shadow-lg">
+                F
+              </div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 via-white to-cyan-400 bg-clip-text text-transparent">
+                Create Account
+              </h1>
+              <p className="text-gray-500 text-[11px] mt-1 uppercase tracking-[0.2em]">
+                Join the focus hub
               </p>
-              <motion.button
-                type="button"
-                onClick={logout}
-                className="text-sm text-blue-600 dark:text-blue-300 hover:text-blue-700 dark:hover:text-blue-200 underline font-medium"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                Logout to create a different account →
-              </motion.button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </div>
 
-        {/* Success message */}
-        <AnimatePresence mode="wait">
-          {successMessage && (
-            <motion.div
-              className="rounded-md bg-green-50 dark:bg-green-900/20 p-4 border border-green-200 dark:border-green-800"
-              variants={ANIMATION_VARIANTS.slideInFromRight}
-              initial="hidden"
-              animate="visible"
-              exit="hidden"
-            >
-              <p className="text-sm font-medium text-green-800 dark:text-green-200">
-                {successMessage}
-              </p>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            {/* Error Message */}
+            <AnimatePresence>
+              {submitError && (
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] text-center font-medium"
+                >
+                  {submitError}
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-        {/* Form */}
-        <AnimatePresence mode="wait">
-          {!successMessage && (
-            <motion.form
-              className="mt-8 space-y-6"
-              onSubmit={handleSubmit(onSubmit)}
-              variants={ANIMATION_VARIANTS.listContainer}
-              initial="hidden"
-              animate="visible"
-              exit="hidden"
-            >
-              {/* Error alert */}
-              <AnimatePresence mode="wait">
-                {submitError && (
-                  <motion.div
-                    className="rounded-md bg-red-50 dark:bg-red-900/20 p-4 border border-red-200 dark:border-red-800"
-                    variants={ANIMATION_VARIANTS.slideInFromRight}
-                    initial="hidden"
-                    animate="visible"
-                    exit="hidden"
-                  >
-                    <p className="text-sm font-medium text-red-800 dark:text-red-200">
-                      {submitError}
-                    </p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
+            {/* Registration Form */}
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               {/* Email field */}
-              <motion.div variants={ANIMATION_VARIANTS.listItem}>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Email address
+              <div>
+                <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 ml-1">
+                  Email Address
                 </label>
                 <input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
                   {...register("email")}
-                  className="input mt-1"
+                  type="email"
+                  placeholder="name@example.com"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-cyan-500/50 transition-all placeholder:text-gray-700"
                   disabled={isSubmitting}
                 />
-                {errors.email && (
-                  <motion.p
-                    className="mt-1 text-sm text-red-600 dark:text-red-400"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={SPRING_CONFIGS.gentle}
-                  >
-                    {errors.email.message}
-                  </motion.p>
-                )}
-              </motion.div>
+                {errors.email && <p className="text-red-500 text-[10px] mt-1 ml-1">{errors.email.message}</p>}
+              </div>
 
               {/* Password field */}
-              <motion.div variants={ANIMATION_VARIANTS.listItem}>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <div>
+                <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 ml-1">
                   Password
                 </label>
                 <PasswordInput
-                  id="password"
-                  placeholder="••••••••"
-                  disabled={isSubmitting}
                   {...register("password")}
-                  className="mt-1"
+                  placeholder="••••••••"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-cyan-500/50 transition-all"
+                  disabled={isSubmitting}
                 />
-
-                {/* Password strength indicator */}
-                <AnimatePresence mode="wait">
-                  {passwordValue && (
-                    <motion.div
-                      className="mt-2"
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={SPRING_CONFIGS.smooth}
-                    >
-                      <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400 mb-1">
-                        <span>Password strength:</span>
-                        <span className={strengthLabel.color.replace("bg-", "text-")}>
-                          {strengthLabel.label}
-                        </span>
-                      </div>
-                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                        <motion.div
-                          className={`${strengthLabel.color} h-2 rounded-full`}
-                          animate={{ width: `${strength}%` }}
-                          transition={SPRING_CONFIGS.smooth}
-                        />
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {errors.password && (
-                  <motion.p
-                    className="mt-1 text-sm text-red-600 dark:text-red-400"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={SPRING_CONFIGS.gentle}
-                  >
-                    {errors.password.message}
-                  </motion.p>
+                {/* Strength Meter */}
+                {passwordValue && (
+                  <div className="mt-2 px-1">
+                    <div className="flex justify-between text-[9px] mb-1 uppercase tracking-tighter">
+                      <span className="text-gray-500">Security Strength</span>
+                      <span className={strength > 50 ? "text-cyan-400" : "text-orange-400"}>{strength}%</span>
+                    </div>
+                    <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                      <motion.div 
+                        className="h-full bg-gradient-to-r from-blue-500 to-cyan-400" 
+                        initial={{ width: 0 }} 
+                        animate={{ width: `${strength}%` }}
+                      />
+                    </div>
+                  </div>
                 )}
-              </motion.div>
+                {errors.password && <p className="text-red-500 text-[10px] mt-1 ml-1">{errors.password.message}</p>}
+              </div>
 
-              {/* Confirm password field */}
-              <motion.div variants={ANIMATION_VARIANTS.listItem}>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Confirm password
+              {/* Confirm Password field */}
+              <div>
+                <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 ml-1">
+                  Confirm Password
                 </label>
                 <PasswordInput
-                  id="confirmPassword"
-                  placeholder="••••••••"
-                  disabled={isSubmitting}
                   {...register("confirmPassword")}
-                  className="mt-1"
+                  placeholder="••••••••"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-cyan-500/50 transition-all"
+                  disabled={isSubmitting}
                 />
-                {errors.confirmPassword && (
-                  <motion.p
-                    className="mt-1 text-sm text-red-600 dark:text-red-400"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={SPRING_CONFIGS.gentle}
-                  >
-                    {errors.confirmPassword.message}
-                  </motion.p>
-                )}
-              </motion.div>
+                {errors.confirmPassword && <p className="text-red-500 text-[10px] mt-1 ml-1">{errors.confirmPassword.message}</p>}
+              </div>
 
               {/* Terms checkbox */}
-              <motion.div className="flex items-center" variants={ANIMATION_VARIANTS.listItem}>
-                <input
-                  id="terms"
-                  type="checkbox"
-                  {...register("terms")}
-                  className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:bg-gray-800 dark:border-gray-600"
-                  disabled={isSubmitting}
+              <div className="flex items-start gap-2 ml-1 mt-2">
+                <input 
+                  {...register("terms")} 
+                  type="checkbox" 
+                  className="mt-0.5 w-3.5 h-3.5 rounded border-white/10 bg-white/5 text-cyan-500 focus:ring-0 focus:ring-offset-0 transition-all cursor-pointer" 
                 />
-                <label htmlFor="terms" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
-                  I agree to the{" "}
-                  <a href="#" className="text-blue-600 hover:text-blue-500">
-                    Terms & Conditions
-                  </a>
+                <label className="text-[10px] text-gray-500 leading-tight">
+                  I agree to the <span className="text-gray-300 underline cursor-pointer">Terms & Conditions</span> and Privacy Policy
                 </label>
-              </motion.div>
-              {errors.terms && (
-                <motion.p
-                  className="text-sm text-red-600 dark:text-red-400"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={SPRING_CONFIGS.gentle}
-                >
-                  {errors.terms.message}
-                </motion.p>
-              )}
+              </div>
+              {errors.terms && <p className="text-red-500 text-[10px] ml-1">{errors.terms.message}</p>}
 
               {/* Submit button */}
               <motion.button
                 type="submit"
                 disabled={!isValid || isSubmitting}
-                className="btn-primary w-full mt-4"
-                variants={ANIMATION_VARIANTS.buttonTap}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                transition={SPRING_CONFIGS.primary}
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl text-white text-sm font-bold shadow-lg shadow-cyan-900/20 mt-2 disabled:opacity-40 transition-all"
               >
-                {isSubmitting ? "Creating account..." : "Sign up"}
+                {isSubmitting ? "Creating Account..." : "Create Account"}
               </motion.button>
-            </motion.form>
-          )}
-        </AnimatePresence>
+            </form>
 
-        {/* Footer links */}
-        <AnimatePresence>
-          {!successMessage && (
-            <motion.div
-              className="text-center"
-              variants={ANIMATION_VARIANTS.listItem}
-              initial="hidden"
-              animate="visible"
-            >
-              <p className="text-xs text-gray-500 dark:text-gray-500">
-                By creating an account, you agree to our Terms & Conditions and
-                Privacy Policy
+            {/* Footer link */}
+            <div className="mt-6 text-center">
+              <p className="text-xs text-gray-500">
+                Already a member?{" "}
+                <Link href={ROUTES.LOGIN} className="text-cyan-400 font-bold hover:text-cyan-300 transition-colors">
+                  Sign In
+                </Link>
               </p>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
-    </motion.div>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </>
   );
 }

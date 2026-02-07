@@ -4,8 +4,13 @@
  * Purpose: Configure Next.js for API integration and static export (optional)
  */
 
+const path = require('path');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Use frontend dir as workspace root (avoids "multiple lockfiles" warning in monorepo)
+  outputFileTracingRoot: path.join(__dirname),
+
   // Enable React strict mode for development
   reactStrictMode: true,
 
@@ -50,12 +55,13 @@ const nextConfig = {
 
   // Rewrites for API proxy (optional)
   async rewrites() {
+    const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
     return {
       beforeFiles: [
         // Proxy /api/* to backend
         {
           source: '/api/:path*',
-          destination: `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/:path*`,
+          destination: `${apiBase}/api/:path*`,
         },
       ],
     };
