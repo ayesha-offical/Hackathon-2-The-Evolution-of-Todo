@@ -89,21 +89,29 @@ export function middleware(request: NextRequest) {
   }
 
   /**
-   * Rule 2: Auth routes redirect to dashboard if already authenticated
-   * This prevents already-logged-in users from seeing login/register pages
+   * Rule 2: Auth routes - Allow access, let components handle redirect
+   * NOTE: Removed middleware redirect for auth routes. Components (LoginPage, RegisterPage)
+   * already handle redirecting authenticated users to dashboard using AuthContext hook.
+   * This prevents issues where expired/invalid cookies would block login page access.
+   *
+   * The components use the actual session validation from the backend API,
+   * which is more reliable than checking cookie presence in middleware.
+   *
+   * Reference: Components check session via useAuth() hook which calls /api/v1/auth/get-session
    */
-  if (isAuthRoute && hasSession) {
+  // Middleware will NOT redirect auth routes - let components handle it
+  if (isAuthRoute) {
     if (process.env.NODE_ENV === 'development') {
-      console.debug('[Middleware] Auth route with session, redirecting to /dashboard');
+      console.debug('[Middleware] Auth route - allowing access, components will handle redirect');
     }
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    return NextResponse.next();
   }
 
   /**
    * Rule 3: Allow request to continue
    * - Public routes are always allowed
-   * - Protected routes with valid session are allowed
-   * - Auth routes without session are allowed
+   * - Protected routes with valid session are allowed (checked in Rule 1)
+   * - Auth routes are allowed (components handle redirect logic via useAuth hook)
    */
   return NextResponse.next();
 }
