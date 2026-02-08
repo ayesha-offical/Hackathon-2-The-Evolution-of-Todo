@@ -69,7 +69,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   /**
    * Load an existing conversation
    * Loads conversation messages from history
-   * For MVP, messages are loaded on demand with chat response
    */
   const loadConversation = useCallback(
     async (conversationId: string) => {
@@ -77,20 +76,40 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         setError(null);
         setIsLoading(true);
 
-        // For MVP: Find conversation from list
+        // Find conversation from list
         const conv = conversations.find((c) => c.id === conversationId);
         if (!conv) {
           throw new Error("Conversation not found");
         }
 
         setCurrentConversation(conv);
-        // Messages will be loaded with API call when needed
-        console.debug("[Chat] Loaded conversation:", conversationId);
+
+        // Fetch messages for this conversation from API
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/chat/conversations/${conversationId}`,
+          {
+            method: "GET",
+            headers: {
+              "Authorization": `Bearer ${sessionStorage.getItem("auth_token")}`,
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          setMessages(data.messages || []);
+          console.debug("[Chat] Loaded conversation messages:", conversationId);
+        } else {
+          console.warn("[Chat] Could not load conversation messages, will start fresh");
+          setMessages([]);
+        }
       } catch (err) {
         const message = err instanceof Error ? err.message : "Failed to load conversation";
         setError(message);
         console.error("[Chat] Failed to load conversation:", message);
-        throw err;
+        setMessages([]);
       } finally {
         setIsLoading(false);
       }
@@ -158,6 +177,43 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const clearError = useCallback(() => {
     setError(null);
   }, []);
+
+  /**
+   * Load conversations on component mount
+   * Fetches all conversations for the current user from the backend
+   */
+  useEffect(() => {
+    if (!user) return;
+
+    const loadConversations = async () => {
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/chat/conversations`,
+          {
+            method: "GET",
+            headers: {
+              "Authorization": `Bearer ${sessionStorage.getItem("auth_token")}`,
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          setConversations(data.conversations || []);
+          console.debug("[Chat] Loaded conversations on mount:", data.conversations?.length);
+        } else {
+          console.warn("[Chat] Failed to load conversations, starting fresh");
+        }
+      } catch (err) {
+        console.error("[Chat] Error loading conversations:", err);
+        // Continue without error - conversation list is optional on load
+      }
+    };
+
+    loadConversations();
+  }, [user]);
 
   const value: ChatContextType = {
     conversations,

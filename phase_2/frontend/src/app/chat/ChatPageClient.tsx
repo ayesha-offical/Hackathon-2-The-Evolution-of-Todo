@@ -9,7 +9,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { ChatComponent } from "@/components/chat";
+import { ChatComponent, ChatSidebar } from "@/components/chat";
 import { ROUTES } from "@/config/constants";
 import { motion } from "framer-motion";
 
@@ -90,35 +90,38 @@ export function ChatPageClient() {
   }
 
   /**
-   * Render chat interface
+   * Render chat interface with ChatGPT-like layout (sidebar + main chat)
    */
   return (
     <motion.main
-      className="w-full min-h-screen bg-gradient-to-br from-background-elevated/10 via-background/80 to-background-surface/40"
+      className="w-full h-screen bg-gradient-to-br from-background/40 via-background/80 to-background-surface/40 flex"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
     >
-      {/* Container */}
-      <div className="max-w-6xl mx-auto h-screen px-4 py-6">
+      {/* Sidebar */}
+      <ChatSidebar />
+
+      {/* Main Chat Area */}
+      <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header Section */}
         <motion.div
-          className="mb-6"
+          className="px-6 py-4 border-b border-border/40 bg-background-elevated/20 backdrop-blur-sm"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
         >
-          <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
+          <h1 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
             AI Task Assistant
           </h1>
-          <p className="text-text-muted">
-            Chat with AI to manage your tasks. Create, list, update, or delete tasks with natural language.
+          <p className="text-sm text-text-muted mt-1">
+            Chat with AI to create, list, update, or delete tasks using natural language
           </p>
         </motion.div>
 
         {/* Chat Interface */}
         <motion.div
-          className="h-[calc(100%-120px)] rounded-xl overflow-hidden"
+          className="flex-1 overflow-hidden px-4 py-4"
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4, delay: 0.2 }}
@@ -128,13 +131,13 @@ export function ChatPageClient() {
 
         {/* Footer Info */}
         <motion.div
-          className="mt-4 text-xs text-text-muted text-center"
+          className="px-6 py-3 text-xs text-text-muted text-center border-t border-border/40 bg-background-elevated/10"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.4, delay: 0.3 }}
         >
           <p>
-            Powered by OpenAI • Your messages are processed securely • Constitution III: User Isolation enforced
+            Powered by OpenAI • User Isolation enforced
           </p>
         </motion.div>
       </div>

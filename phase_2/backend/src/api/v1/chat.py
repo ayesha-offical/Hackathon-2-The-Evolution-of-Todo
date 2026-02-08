@@ -283,3 +283,181 @@ async def send_chat_message(
             status_code=500,
             detail="Error processing chat request. Please try again.",
         )
+
+
+# ============================================================================
+# T330: GET /api/v1/chat/conversations (PROTECTED)
+# ============================================================================
+
+
+@router.get(
+    "/conversations",
+    response_model=dict,
+    status_code=200,
+    summary="List Conversations",
+    description="Get list of all conversations for current user",
+    responses={
+        200: {"description": "Conversations retrieved successfully"},
+        401: {"description": "Unauthorized - missing or invalid JWT token"},
+        500: {"description": "Server error - database failure"},
+    },
+)
+async def list_conversations(
+    user_id: str = Depends(get_current_user_id),
+    session: AsyncSession = Depends(get_db_session),
+):
+    """
+    List all conversations for the current user.
+
+    Task: T330 | Reference: @specs/004-todo-ai-chatbot/spec.md §FR-013
+
+    Flow:
+    1. Verify JWT authentication → extract user_id (Constitution II)
+    2. Query all conversations for user (Constitution III - user scoped)
+    3. Return ordered by most recent first
+
+    Args:
+        user_id: Extracted from JWT token via Depends(get_current_user_id)
+        session: Database session
+
+    Returns:
+        Dict with conversations list
+
+    Raises:
+        HTTPException 401: JWT invalid/expired
+        HTTPException 500: Database failure
+    """
+    try:
+        logger.debug(f"Listing conversations for user {user_id}")
+
+        # Query all conversations for this user, ordered by most recent
+        conversations = await conversation_service.list_by_user(
+            user_id=user_id,
+            session=session,
+        )
+
+        logger.info(f"Found {len(conversations)} conversations for user {user_id}")
+
+        # Convert to response format
+        conversation_list = [
+            {
+                "id": str(conv.id),
+                "user_id": str(conv.user_id),
+                "created_at": conv.created_at.isoformat() if conv.created_at else None,
+                "updated_at": conv.updated_at.isoformat() if conv.updated_at else None,
+            }
+            for conv in conversations
+        ]
+
+        return {"conversations": conversation_list}
+
+    except Exception as e:
+        logger.error(
+            f"Failed to list conversations for user {user_id}: {str(e)}",
+            exc_info=True,
+        )
+        raise HTTPException(
+            status_code=500,
+            detail="Error retrieving conversations. Please try again.",
+        )
+
+
+# ============================================================================
+# T330: GET /api/v1/chat/conversations/{conversation_id} (PROTECTED)
+# ============================================================================
+
+
+@router.get(
+    "/conversations/{conversation_id}",
+    response_model=dict,
+    status_code=200,
+    summary="Get Conversation Messages",
+    description="Get all messages for a specific conversation",
+    responses={
+        200: {"description": "Messages retrieved successfully"},
+        401: {"description": "Unauthorized - missing or invalid JWT token"},
+        404: {"description": "Conversation not found or doesn't belong to user"},
+        500: {"description": "Server error - database failure"},
+    },
+)
+async def get_conversation(
+    conversation_id: str,
+    user_id: str = Depends(get_current_user_id),
+    session: AsyncSession = Depends(get_db_session),
+):
+    """
+    Get all messages for a specific conversation.
+
+    Task: T330 | Reference: @specs/004-todo-ai-chatbot/spec.md §FR-013
+
+    Flow:
+    1. Verify JWT authentication → extract user_id (Constitution II)
+    2. Verify conversation belongs to user (Constitution III - user scoped)
+    3. Load all messages for conversation
+    4. Return in chronological order
+
+    Args:
+        conversation_id: ID of conversation to fetch
+        user_id: Extracted from JWT token via Depends(get_current_user_id)
+        session: Database session
+
+    Returns:
+        Dict with messages list
+
+    Raises:
+        HTTPException 401: JWT invalid/expired
+        HTTPException 404: Conversation doesn't belong to user
+        HTTPException 500: Database failure
+    """
+    try:
+        logger.debug(f"Getting conversation {conversation_id} for user {user_id}")
+
+        # Verify conversation belongs to user
+        conversation = await conversation_service.get_by_id(
+            user_id=user_id,
+            conversation_id=conversation_id,
+            session=session,
+        )
+
+        if not conversation:
+            logger.warning(
+                f"Conversation {conversation_id} not found or doesn't belong to user {user_id}"
+            )
+            raise HTTPException(
+                status_code=404,
+                detail="Conversation not found or doesn't belong to you",
+            )
+
+        # Load messages for this conversation
+        messages = await message_service.list_by_conversation(
+            user_id=user_id,
+            conversation_id=conversation_id,
+            session=session,
+        )
+
+        logger.debug(f"Found {len(messages)} messages in conversation {conversation_id}")
+
+        # Convert to response format
+        message_list = [
+            {
+                "id": str(msg.id),
+                "role": msg.role.value,
+                "content": msg.content,
+                "created_at": msg.created_at.isoformat() if msg.created_at else None,
+            }
+            for msg in messages
+        ]
+
+        return {"messages": message_list}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(
+            f"Failed to get conversation {conversation_id} for user {user_id}: {str(e)}",
+            exc_info=True,
+        )
+        raise HTTPException(
+            status_code=500,
+            detail="Error retrieving conversation messages. Please try again.",
+        )
