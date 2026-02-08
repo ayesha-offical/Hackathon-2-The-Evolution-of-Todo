@@ -21,7 +21,6 @@ import {
   ROUTES,
   ERROR_MESSAGES,
   PASSWORD_REQUIREMENTS,
-  EMAIL_REGEX,
 } from "@/config/constants";
 import { ConfettiAnimation } from "@/components/ConfettiAnimation";
 import { PasswordInput } from "@/components/common/PasswordInput";
@@ -34,8 +33,7 @@ const registerSchema = z
   .object({
     email: z
       .string()
-      .email("Invalid email address")
-      .regex(EMAIL_REGEX, "Invalid email format"),
+      .email("Invalid email address"),
     password: z
       .string()
       .min(

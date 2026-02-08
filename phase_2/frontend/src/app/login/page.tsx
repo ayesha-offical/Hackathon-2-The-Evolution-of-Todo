@@ -9,7 +9,7 @@
 // import { motion, AnimatePresence } from "framer-motion";
 // import { authClient } from "@/lib/auth";
 // import { useAuth } from "@/contexts/AuthContext";
-// import { ROUTES, ERROR_MESSAGES, EMAIL_REGEX } from "@/config/constants";
+// import { ROUTES, ERROR_MESSAGES } from "@/config/constants";
 // import { PasswordInput } from "@/components/common/PasswordInput";
 // import { ConfettiAnimation } from "@/components/ConfettiAnimation";
 
@@ -194,12 +194,12 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { authClient } from "@/lib/auth";
 import { useAuth } from "@/contexts/AuthContext";
-import { ROUTES, ERROR_MESSAGES, EMAIL_REGEX } from "@/config/constants";
+import { ROUTES, ERROR_MESSAGES } from "@/config/constants";
 import { PasswordInput } from "@/components/common/PasswordInput";
 import { ConfettiAnimation } from "@/components/ConfettiAnimation";
 
 const loginSchema = z.object({
-  email: z.string().email("Invalid email address").regex(EMAIL_REGEX, "Invalid email format"),
+  email: z.string().email("Invalid email address"),
   password: z.string().min(1, "Password is required"),
 });
 
