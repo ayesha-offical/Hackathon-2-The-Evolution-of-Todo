@@ -60,17 +60,26 @@ API_DESCRIPTION = "Full-stack todo application with JWT authentication"
 # Public endpoints that skip JWT verification
 PUBLIC_ENDPOINTS = {
     "/health",
+    # API v1 endpoints
     "/api/v1/auth/register",
     "/api/v1/auth/login",
     "/api/v1/auth/refresh",  # Refresh can use refresh token instead of access token
     "/api/v1/auth/forgot-password",
     "/api/v1/auth/reset-password",
-    # Better Auth compatible endpoints
     "/api/v1/auth/sign-up/email",
     "/api/v1/auth/sign-in/email",
     "/api/v1/auth/get-session",
-    # Contact form endpoint (public - unauthenticated users can submit)
     "/api/v1/messages/contact",
+    # API v0 (Better Auth compatible - without /v1 prefix)
+    "/api/auth/register",
+    "/api/auth/login",
+    "/api/auth/refresh",
+    "/api/auth/forgot-password",
+    "/api/auth/reset-password",
+    "/api/auth/sign-up/email",
+    "/api/auth/sign-in/email",
+    "/api/auth/get-session",
+    "/api/messages/contact",
     # Documentation endpoints
     "/docs",
     "/redoc",

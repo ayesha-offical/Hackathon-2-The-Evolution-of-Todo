@@ -19,3 +19,13 @@ router.include_router(task_router, prefix="/tasks", tags=["tasks"])
 
 # Register messages router (Task T006 - Contact form endpoints)
 router.include_router(messages_router, prefix="/messages", tags=["messages"])
+
+# ============================================================================
+# Better Auth Compatibility Router (without /v1 prefix)
+# ============================================================================
+# Better Auth client expects /api/auth/* paths, not /api/v1/auth/*
+# This router provides the expected paths for Better Auth library compatibility
+router_v0 = APIRouter(prefix="/api")
+
+# Register auth router at /api/auth for Better Auth compatibility
+router_v0.include_router(auth_router, prefix="/auth", tags=["auth"])

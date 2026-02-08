@@ -191,12 +191,16 @@ async def health_check():
 
 
 # ============================================================================
-# API v1 ROUTER (Phase 3+)
+# API ROUTERS (v0 and v1)
 # ============================================================================
 
 # Task: T042 - Register v1 router with auth endpoints
-from src.api.v1 import router as api_v1_router
+from src.api.v1 import router as api_v1_router, router_v0 as api_v0_router
 
+# Register v0 router (Better Auth compatibility: /api/auth/*)
+app.include_router(api_v0_router)
+
+# Register v1 router (/api/v1/auth/*)
 app.include_router(api_v1_router)
 
 # The following routers will be registered in subsequent phases:
