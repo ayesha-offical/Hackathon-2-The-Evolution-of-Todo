@@ -8,16 +8,8 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
 /**
- * Protected routes that require authentication
- * Users without valid session will be redirected to /login
- */
-const PROTECTED_ROUTES = [
-  '/dashboard',
-  '/dashboard/tasks',
-];
-
-/**
- * Authentication routes (login/register) that should redirect authenticated users to dashboard
+ * Authentication routes (login/register)
+ * These routes are handled by client-side AuthContext
  */
 const AUTH_ROUTES = [
   '/login',
@@ -50,67 +42,35 @@ const AUTH_ROUTES = [
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Check for authentication cookies set by backend
-  // The backend sets: Authorization (with Bearer prefix) and RefreshToken
-  // Reference: backend/src/api/v1/auth.py §set_cookie with keys "Authorization" and "RefreshToken"
-  const hasAuthorizationCookie = request.cookies.has('Authorization');
-  const hasRefreshToken = request.cookies.has('RefreshToken');
-
-  // Session exists if we have the Authorization cookie (access token)
-  // RefreshToken serves as a backup indicator
-  const hasSession = hasAuthorizationCookie || hasRefreshToken;
-
-  // Log for debugging (only in development)
-  if (process.env.NODE_ENV === 'development') {
-    const allCookies = request.cookies.getAll();
-    console.debug('[Middleware] Checking route:', pathname);
-    console.debug('[Middleware] All cookies:', allCookies.map(c => c.name).join(', '));
-    console.debug('[Middleware] Has session:', hasSession,
-      '(Authorization:', hasAuthorizationCookie,
-      ', RefreshToken:', hasRefreshToken + ')');
-  }
-
-  // Check if current path is a protected route
-  const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname.startsWith(route));
+  // NOTE: Middleware does NOT check for authentication cookies
+  // Reason: Cross-domain cookie restrictions (Vercel frontend + Hugging Face backend)
+  //
+  // Instead, we rely on:
+  // 1. Client-side AuthContext that checks session via API call to /api/v1/auth/get-session
+  // 2. Dashboard/Protected page components that redirect to /login if not authenticated
+  // 3. sessionStorage.auth_token for fallback authentication
+  //
+  // This approach is more reliable than cookie-based middleware checks and handles
+  // cross-domain authentication properly.
 
   // Check if current path is an auth route (login, register, etc.)
   const isAuthRoute = AUTH_ROUTES.some(route => pathname.startsWith(route));
 
-  /**
-   * Rule 1: Protected routes require authentication
-   * If accessing protected route without session, redirect to login
-   */
-  if (isProtectedRoute && !hasSession) {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('[Middleware] Protected route without session, redirecting to /login');
-    }
-    return NextResponse.redirect(new URL('/login', request.url));
+  // Log for debugging (only in development)
+  if (process.env.NODE_ENV === 'development') {
+    console.debug('[Middleware] Route:', pathname);
+    console.debug('[Middleware] Is auth route:', isAuthRoute);
+    console.debug('[Middleware] Note: Cookie-based auth disabled. Using client-side AuthContext instead.');
   }
 
   /**
-   * Rule 2: Auth routes - Allow access, let components handle redirect
-   * NOTE: Removed middleware redirect for auth routes. Components (LoginPage, RegisterPage)
-   * already handle redirecting authenticated users to dashboard using AuthContext hook.
-   * This prevents issues where expired/invalid cookies would block login page access.
+   * Allow all requests to continue
+   * Authentication is handled by:
+   * 1. AuthContext on client side (checks /api/v1/auth/get-session)
+   * 2. Component-level redirects in login/register/dashboard pages
+   * 3. Session token from sessionStorage
    *
-   * The components use the actual session validation from the backend API,
-   * which is more reliable than checking cookie presence in middleware.
-   *
-   * Reference: Components check session via useAuth() hook which calls /api/v1/auth/get-session
-   */
-  // Middleware will NOT redirect auth routes - let components handle it
-  if (isAuthRoute) {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('[Middleware] Auth route - allowing access, components will handle redirect');
-    }
-    return NextResponse.next();
-  }
-
-  /**
-   * Rule 3: Allow request to continue
-   * - Public routes are always allowed
-   * - Protected routes with valid session are allowed (checked in Rule 1)
-   * - Auth routes are allowed (components handle redirect logic via useAuth hook)
+   * Reference: @specs/001-sdd-initialization/features/authentication.md
    */
   return NextResponse.next();
 }
