@@ -227,6 +227,23 @@ export default function LoginPage() {
     }
   }, [authLoading, user, router]);
 
+  /**
+   * Auto-navigate to dashboard after confetti completes if user is loaded
+   * (triggered after manual sign-in, not the automatic redirect above)
+   */
+  useEffect(() => {
+    if (!showConfetti || !user) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      console.log("[Login] Confetti complete and user loaded, navigating to dashboard");
+      router.push(ROUTES.DASHBOARD);
+    }, 2000); // Match confetti duration
+
+    return () => clearTimeout(timer);
+  }, [showConfetti, user, router]);
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#030712]">
@@ -262,24 +279,13 @@ export default function LoginPage() {
           console.log("[Login] Token stored in sessionStorage");
         }
 
-        // Small delay to ensure cookies are processed by browser
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        // Session refresh to load user from cookies or backend
+        // Refresh session to populate auth context before navigation
         console.log("[Login] Calling refreshSession to populate context...");
         await refreshSession();
+        console.log("[Login] Session refreshed, user loaded into context");
 
-        // Add another delay to ensure session is refreshed
-        await new Promise(resolve => setTimeout(resolve, 300));
-
-        // Confetti animation
+        // Show confetti animation
         setShowConfetti(true);
-
-        // Redirect to dashboard after confetti or after timeout
-        setTimeout(() => {
-          console.log("[Login] Redirecting to dashboard");
-          router.push(ROUTES.DASHBOARD);
-        }, 2000);
 
       } else {
         console.warn("[Login] Sign in failed: No data in response");
@@ -301,8 +307,7 @@ export default function LoginPage() {
         <ConfettiAnimation
           isActive={showConfetti}
           onComplete={() => {
-            console.log("[Login] Confetti complete, pushing dashboard route");
-            router.push(ROUTES.DASHBOARD);
+            console.log("[Login] Confetti complete");
           }}
           duration={2000}
         />
