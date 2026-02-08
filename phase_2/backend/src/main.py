@@ -81,10 +81,22 @@ app = FastAPI(
 # Build allowed origins list for local development
 # For development: Allow localhost on standard ports (3000, 3001)
 # For production: Only allow configured frontend URL
-# CORS configuration for cross-domain requests (Vercel <-> Hugging Face)
+# CORS configuration for cross-domain requests
+# For development: Allow localhost on all standard ports
+# For production: Allow Vercel frontend
+allowed_origins = [
+    # Development
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3001",
+    # Production
+    "https://focus-hub-omega.vercel.app",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://focus-hub-omega.vercel.app"],  # Allow Vercel frontend
+    allow_origins=allowed_origins,
     allow_credentials=True,  # Allow cookies to be sent and received
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization"],
