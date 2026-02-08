@@ -27,10 +27,12 @@ export interface AuthSession {
  * Auth context value
  */
 export interface AuthContextType {
-  session: AuthSession | null;
+  session?: AuthSession | null;
   user: AuthUser | null;
   isLoading: boolean;
-  isAuthenticated: boolean;
+  isAuthenticated?: boolean;
+  isError?: boolean;
+  error?: string | null;
 }
 
 /**

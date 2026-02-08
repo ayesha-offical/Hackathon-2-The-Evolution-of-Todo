@@ -11,7 +11,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { apiCall } from "@/lib/api";
 import { ROUTES } from "@/config/constants";
-import type { AuthUser, AuthContextType, BetterAuthSessionResponse } from "@/types/auth";
+import type { AuthUser, AuthContextType, BetterAuthSignInResponse } from "@/types/auth";
 
 /**
  * AuthContext for storing authentication state
@@ -108,7 +108,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        const sessionData = (await response.json()) as unknown as BetterAuthSessionResponse;
+        const sessionData = (await response.json()) as unknown as BetterAuthSignInResponse;
         console.debug('[Auth] Session data received:', sessionData);
 
         // Check for user in response - handle both direct and nested structures

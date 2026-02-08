@@ -62,7 +62,6 @@ export function middleware(request: NextRequest) {
 
   // Log for debugging (only in development)
   if (process.env.NODE_ENV === 'development') {
-    const cookieNames = request.cookies.getSetCookie?.() || [];
     const allCookies = request.cookies.getAll();
     console.debug('[Middleware] Checking route:', pathname);
     console.debug('[Middleware] All cookies:', allCookies.map(c => c.name).join(', '));
