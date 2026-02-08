@@ -4,7 +4,7 @@
 import { createAuthClient } from "better-auth/react";
 
 export const authClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL || "http://localhost:8000/api/v1/auth",
+  baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL || "https://focus-hub-omega.vercel.app/api/v1/auth",
   fetchOptions: {
     credentials: "include",
   },
