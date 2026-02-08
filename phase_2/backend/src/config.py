@@ -21,13 +21,15 @@ class Settings(BaseSettings):
     # DATABASE CONFIGURATION
     # =========================================================================
 
-    database_url: str = "postgresql+asyncpg://neondb_owner:npg_at01WdvzQgFc@ep-silent-fog-agyx057r-pooler.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require"
+    database_url: str
+    """PostgreSQL connection URL - MUST be set via DATABASE_URL env var"""
 
     # =========================================================================
     # AUTHENTICATION & JWT (Constitution II - JWT Bridge)
     # =========================================================================
 
-    better_auth_secret: str = "VI5oxGZKnZ7FlLmaw5fGS7t373QzjP2I"
+    better_auth_secret: str
+    """JWT secret key - MUST be set via BETTER_AUTH_SECRET env var"""
 
     # =========================================================================
     # API CONFIGURATION
