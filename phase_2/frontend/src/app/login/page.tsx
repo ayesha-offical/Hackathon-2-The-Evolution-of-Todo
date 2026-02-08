@@ -256,7 +256,7 @@ export default function LoginPage() {
         console.log("[Login] Auth successful");
 
         // Store token in sessionStorage as fallback if cookies don't work
-        const token = result.data?.session?.token || result.data?.token;
+        const token = (result.data as any)?.token;
         if (token) {
           sessionStorage.setItem('auth_token', token);
           console.log("[Login] Token stored in sessionStorage");
