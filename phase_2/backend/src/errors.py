@@ -88,3 +88,49 @@ class UserExistsError(Exception):
     def to_http_exception(self) -> HTTPException:
         """Convert to HTTPException for FastAPI response."""
         return HTTPException(status_code=self.status_code, detail=self.message)
+
+
+# Phase III: Todo AI Chatbot Error Classes
+# Task: T326 | Spec: @specs/004-todo-ai-chatbot/plan.md Step 4 §Error handling
+
+
+class ConversationNotFoundError(Exception):
+    """Raised when conversation is not found or doesn't belong to user."""
+
+    def __init__(self, message: str = "Conversation not found") -> None:
+        """Initialize exception."""
+        self.message = message
+        self.status_code = 404
+        super().__init__(self.message)
+
+    def to_http_exception(self) -> HTTPException:
+        """Convert to HTTPException for FastAPI response."""
+        return HTTPException(status_code=self.status_code, detail=self.message)
+
+
+class InvalidMessageError(Exception):
+    """Raised when message validation fails."""
+
+    def __init__(self, message: str = "Invalid message") -> None:
+        """Initialize exception."""
+        self.message = message
+        self.status_code = 400
+        super().__init__(self.message)
+
+    def to_http_exception(self) -> HTTPException:
+        """Convert to HTTPException for FastAPI response."""
+        return HTTPException(status_code=self.status_code, detail=self.message)
+
+
+class AgentProcessingError(Exception):
+    """Raised when OpenAI API or MCP tool execution fails."""
+
+    def __init__(self, message: str = "Error processing request") -> None:
+        """Initialize exception."""
+        self.message = message
+        self.status_code = 500
+        super().__init__(self.message)
+
+    def to_http_exception(self) -> HTTPException:
+        """Convert to HTTPException for FastAPI response."""
+        return HTTPException(status_code=self.status_code, detail=self.message)
