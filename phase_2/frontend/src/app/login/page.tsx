@@ -253,11 +253,12 @@ export default function LoginPage() {
 
       // Check if sign-in was successful (result.data exists)
       if (result && result.data) {
-        console.log("[Login] Auth successful, token received:", result.token ? "yes" : "no");
+        console.log("[Login] Auth successful");
 
         // Store token in sessionStorage as fallback if cookies don't work
-        if (result.token) {
-          sessionStorage.setItem('auth_token', result.token);
+        const token = result.data?.session?.token || result.data?.token;
+        if (token) {
+          sessionStorage.setItem('auth_token', token);
           console.log("[Login] Token stored in sessionStorage");
         }
 
