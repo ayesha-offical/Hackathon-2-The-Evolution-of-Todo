@@ -103,12 +103,12 @@
 
 ### MCP Server Infrastructure Tasks
 
-- [ ] T308 [P] Initialize MCP Server in `backend/src/mcp/__init__.py`:
+- [x] T308 [P] Initialize MCP Server in `backend/src/mcp/__init__.py`: ✅ COMPLETE
   - Create `__init__.py` to mark directory as package
   - Import all tool modules
   - Reference: plan.md Step 2 §Artifacts
 
-- [ ] T309 Create MCP server initialization in `backend/src/mcp/server.py`:
+- [x] T309 Create MCP server initialization in `backend/src/mcp/server.py`: ✅ COMPLETE
   - Import Official MCP SDK: `from mcp.server import Server, Tool, ToolResult`
   - Create Server instance with name="TodoMCPServer"
   - Register four tools: task_create, task_list, task_update, task_delete
@@ -116,7 +116,7 @@
   - Initialize server but do NOT start yet (main.py will handle startup)
   - Reference: spec.md §FR-002, plan.md Step 2
 
-- [ ] T310 Create MCP user_id validation middleware in `backend/src/mcp/middleware.py`:
+- [x] T310 Create MCP user_id validation middleware in `backend/src/mcp/middleware.py`: ✅ COMPLETE
   - Function `validate_user_id_param(request_user_id: str, tool_user_id: str) -> bool`:
     - Return True if both are equal, False otherwise
     - This ensures tool.user_id == request.state.user_id
@@ -126,7 +126,7 @@
 
 ### MCP Tool Implementation Tasks
 
-- [ ] T311 [P] Implement task_create MCP tool in `backend/src/mcp/tools/task_create.py`:
+- [x] T311 [P] Implement task_create MCP tool in `backend/src/mcp/tools/task_create.py`: ✅ COMPLETE
   - Tool schema:
     - Parameters: user_id (required), title (required, str 1-255), description (optional, str 0-2000), status (optional, default='pending')
   - Implementation:
@@ -136,7 +136,7 @@
     - Catch exceptions and return: {"success": false, "error": "..."}
   - Reference: spec.md §FR-001, FR-002, FR-008, plan.md Step 2
 
-- [ ] T312 [P] Implement task_list MCP tool in `backend/src/mcp/tools/task_list.py`:
+- [x] T312 [P] Implement task_list MCP tool in `backend/src/mcp/tools/task_list.py`: ✅ COMPLETE
   - Tool schema:
     - Parameters: user_id (required)
   - Implementation:
@@ -146,7 +146,7 @@
     - Ensure NO tasks from other users included (critical security check)
   - Reference: spec.md §FR-002, FR-009, plan.md Step 2
 
-- [ ] T313 [P] Implement task_update MCP tool in `backend/src/mcp/tools/task_update.py`:
+- [x] T313 [P] Implement task_update MCP tool in `backend/src/mcp/tools/task_update.py`: ✅ COMPLETE
   - Tool schema:
     - Parameters: user_id (required), task_id (required), fields (optional, dict with title/description/status)
   - Implementation:
@@ -157,7 +157,7 @@
     - Return: {"success": false, "error": "Task not found"} if task_id doesn't exist or belongs to different user
   - Reference: spec.md §FR-002, FR-009, plan.md Step 2
 
-- [ ] T314 [P] Implement task_delete MCP tool in `backend/src/mcp/tools/task_delete.py`:
+- [x] T314 [P] Implement task_delete MCP tool in `backend/src/mcp/tools/task_delete.py`: ✅ COMPLETE
   - Tool schema:
     - Parameters: user_id (required), task_id (required)
   - Implementation:
@@ -168,7 +168,7 @@
     - Return: {"success": false, "error": "Task not found"} if not found or unauthorized
   - Reference: spec.md §FR-002, FR-009, plan.md Step 2
 
-- [ ] T315 Create MCP tools __init__.py in `backend/src/mcp/tools/__init__.py`:
+- [x] T315 Create MCP tools __init__.py in `backend/src/mcp/tools/__init__.py`: ✅ COMPLETE
   - Import all tool functions
   - Export tool registry: `TOOLS = [task_create, task_list, task_update, task_delete]`
   - Reference: plan.md Step 2 §Artifacts
