@@ -79,6 +79,7 @@ export default function RegisterPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   const {
     register,
@@ -123,8 +124,15 @@ export default function RegisterPage() {
    */
   async function onSubmit(data: RegisterFormData) {
     try {
+      // Prevent duplicate submissions
+      if (isSubmitting || isNavigating) {
+        console.warn("[Register] Already submitting or navigating, ignoring duplicate submission");
+        return;
+      }
+
       setSubmitError(null);
       setIsSubmitting(true);
+      console.log("[Register] Attempting registration for:", data.email);
 
       const result = await authClient.signUp.email({
         email: data.email,
@@ -132,11 +140,24 @@ export default function RegisterPage() {
         name: data.email.split("@")[0],
       });
 
-      if (result) {
+      console.log("[Register] Signup response:", result);
+
+      if (result && result.data) {
+        console.log("[Register] Registration successful");
         await refreshSession();
+        console.log("[Register] Session refreshed, user loaded into context");
+
+        // Mark as navigating to prevent duplicate submissions
+        setIsNavigating(true);
+
+        // Show confetti animation
         setShowConfetti(true);
+      } else {
+        console.warn("[Register] Signup failed: No data in response");
+        setSubmitError("Registration failed. Email might already exist.");
       }
     } catch (error: any) {
+      console.error("[Register] Exception during signup:", error);
       setSubmitError(error.message || "Registration failed");
     } finally {
       setIsSubmitting(false);
@@ -203,7 +224,7 @@ export default function RegisterPage() {
                   type="email"
                   placeholder="name@example.com"
                   className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-cyan-500/50 transition-all placeholder:text-gray-700"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isNavigating}
                 />
                 {errors.email && <p className="text-red-500 text-[10px] mt-1 ml-1">{errors.email.message}</p>}
               </div>
@@ -218,7 +239,7 @@ export default function RegisterPage() {
                   {...register("password")}
                   placeholder="••••••••"
                   className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-cyan-500/50 transition-all"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isNavigating}
                 />
                 {/* Strength Meter */}
                 {passwordValue && (
@@ -249,19 +270,20 @@ export default function RegisterPage() {
                   {...register("confirmPassword")}
                   placeholder="••••••••"
                   className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-cyan-500/50 transition-all"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isNavigating}
                 />
                 {errors.confirmPassword && <p className="text-red-500 text-[10px] mt-1 ml-1">{errors.confirmPassword.message}</p>}
               </div>
 
               {/* Terms checkbox */}
               <div className="flex items-start gap-2 ml-1 mt-2">
-                <input 
-                  {...register("terms")} 
-                  type="checkbox" 
-                  className="mt-0.5 w-3.5 h-3.5 rounded border-white/10 bg-white/5 text-cyan-500 focus:ring-0 focus:ring-offset-0 transition-all cursor-pointer" 
+                <input
+                  {...register("terms")}
+                  type="checkbox"
+                  className="mt-0.5 w-3.5 h-3.5 rounded border-white/10 bg-white/5 text-cyan-500 focus:ring-0 focus:ring-offset-0 transition-all cursor-pointer"
+                  disabled={isSubmitting || isNavigating}
                 />
-                <label className="text-[10px] text-gray-500 leading-tight">
+                <label className={`text-[10px] leading-tight ${isSubmitting || isNavigating ? "text-gray-600" : "text-gray-500"}`}>
                   I agree to the <span className="text-gray-300 underline cursor-pointer">Terms & Conditions</span> and Privacy Policy
                 </label>
               </div>
@@ -270,12 +292,12 @@ export default function RegisterPage() {
               {/* Submit button */}
               <motion.button
                 type="submit"
-                disabled={!isValid || isSubmitting}
+                disabled={!isValid || isSubmitting || isNavigating}
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
                 className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl text-white text-sm font-bold shadow-lg shadow-cyan-900/20 mt-2 disabled:opacity-40 transition-all"
               >
-                {isSubmitting ? "Creating Account..." : "Create Account"}
+                {isNavigating ? "Redirecting..." : isSubmitting ? "Creating Account..." : "Create Account"}
               </motion.button>
             </form>
 
