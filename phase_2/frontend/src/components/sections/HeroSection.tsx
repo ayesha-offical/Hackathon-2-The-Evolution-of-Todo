@@ -5,7 +5,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { fadeInVariants, staggerItemVariants } from '@/lib/animations';
-import { ANIMATION_VARIANTS, SPRING_CONFIGS } from '@/config/animations';
+import { SPRING_CONFIGS } from '@/config/animations';
 
 export default function HeroSection() {
   return (

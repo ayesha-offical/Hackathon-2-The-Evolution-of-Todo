@@ -22,9 +22,6 @@ export {
 // Responsive layout system
 export { ResponsiveLayout } from './ResponsiveLayout';
 
-// Navigation with responsive hamburger menu
-export { Navigation } from './Navigation';
-
 // Other common components
 export { Header } from './Header';
 export { ErrorAlert, SuccessToast, AlertContainer } from './Alert';

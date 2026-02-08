@@ -139,6 +139,7 @@ export default function LoginPage() {
               <div>
                 <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 ml-1">Password</label>
                 <PasswordInput
+                  id="password"
                   {...register("password")}
                   placeholder="Password"
                   className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-cyan-500/50 transition-all"

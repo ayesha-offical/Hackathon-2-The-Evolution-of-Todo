@@ -77,7 +77,7 @@ function calculatePasswordStrength(password: string): number {
  */
 export default function RegisterPage() {
   const router = useRouter();
-  const { user, isLoading: authLoading, logout, refreshSession } = useAuth();
+  const { user, isLoading: authLoading, refreshSession } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -216,6 +216,7 @@ export default function RegisterPage() {
                   Password
                 </label>
                 <PasswordInput
+                  id="password"
                   {...register("password")}
                   placeholder="••••••••"
                   className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-cyan-500/50 transition-all"
@@ -246,6 +247,7 @@ export default function RegisterPage() {
                   Confirm Password
                 </label>
                 <PasswordInput
+                  id="confirmPassword"
                   {...register("confirmPassword")}
                   placeholder="••••••••"
                   className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-cyan-500/50 transition-all"
