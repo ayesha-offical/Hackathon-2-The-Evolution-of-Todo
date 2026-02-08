@@ -22,14 +22,14 @@ class Settings(BaseSettings):
     # =========================================================================
 
     database_url: str
-    """PostgreSQL connection string from DATABASE_URL environment variable"""
+    "postgresql+asyncpg://neondb_owner:npg_at01WdvzQgFc@ep-silent-fog-agyx057r-pooler.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require"
 
     # =========================================================================
     # AUTHENTICATION & JWT (Constitution II - JWT Bridge)
     # =========================================================================
 
     better_auth_secret: str
-    """JWT signing secret shared with Better Auth frontend"""
+    "VI5oxGZKnZ7FlLmaw5fGS7t373QzjP2I"
 
     # =========================================================================
     # API CONFIGURATION
@@ -45,7 +45,7 @@ class Settings(BaseSettings):
     # APPLICATION ENVIRONMENT
     # =========================================================================
 
-    environment: Literal["development", "staging", "production"] = "development"
+    environment: Literal["development", "staging", "production"] = "production"
     """Environment type controls logging level and error detail exposure"""
 
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
@@ -55,7 +55,7 @@ class Settings(BaseSettings):
     # CORS CONFIGURATION
     # =========================================================================
 
-    frontend_url: str = "https://focus-hub-omega.vercel.app"
+    frontend_url: str = "https://focus-hub-omega.vercel.app/"
     """Frontend URL for CORS - allows requests from frontend origin only
     Note: 3000 is the standard Next.js dev server port"""
 
