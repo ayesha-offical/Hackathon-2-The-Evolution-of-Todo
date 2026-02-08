@@ -211,6 +211,7 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   const { register, handleSubmit, formState: { errors, isValid } } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -236,6 +237,7 @@ export default function LoginPage() {
       return;
     }
 
+    console.log("[Login] Starting confetti → dashboard navigation sequence. User loaded, confetti shown");
     const timer = setTimeout(() => {
       console.log("[Login] Confetti complete and user loaded, navigating to dashboard");
       router.push(ROUTES.DASHBOARD);
@@ -257,6 +259,12 @@ export default function LoginPage() {
 
   async function onSubmit(data: LoginFormData) {
     try {
+      // Prevent duplicate submissions
+      if (isSubmitting || isNavigating) {
+        console.warn("[Login] Already submitting or navigating, ignoring duplicate submission");
+        return;
+      }
+
       setSubmitError(null);
       setIsSubmitting(true);
       console.log("[Login] Attempting sign in for:", data.email);
@@ -283,6 +291,9 @@ export default function LoginPage() {
         console.log("[Login] Calling refreshSession to populate context...");
         await refreshSession();
         console.log("[Login] Session refreshed, user loaded into context");
+
+        // Mark as navigating to prevent duplicate submissions
+        setIsNavigating(true);
 
         // Show confetti animation
         setShowConfetti(true);
@@ -354,7 +365,7 @@ export default function LoginPage() {
                   type="email"
                   placeholder="Email"
                   className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-cyan-500/50 transition-all placeholder:text-gray-700"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isNavigating}
                 />
                 {errors.email && <p className="text-red-500 text-[10px] mt-1 ml-1">{errors.email.message}</p>}
               </div>
@@ -366,19 +377,19 @@ export default function LoginPage() {
                   {...register("password")}
                   placeholder="Password"
                   className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-cyan-500/50 transition-all"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isNavigating}
                 />
                 {errors.password && <p className="text-red-500 text-[10px] mt-1 ml-1">{errors.password.message}</p>}
               </div>
 
               <motion.button
                 type="submit"
-                disabled={!isValid || isSubmitting}
+                disabled={!isValid || isSubmitting || isNavigating}
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
                 className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl text-white text-sm font-bold shadow-lg mt-2 disabled:opacity-40 transition-all"
               >
-                {isSubmitting ? "Signing in..." : "Sign In"}
+                {isNavigating ? "Redirecting..." : isSubmitting ? "Signing in..." : "Sign In"}
               </motion.button>
             </form>
 
