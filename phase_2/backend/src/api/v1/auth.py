@@ -77,12 +77,20 @@ async def better_auth_sign_up(
         )
 
         return {
-            "user": {
-                "id": user.id,
-                "email": user.email,
-                "name": getattr(user, "name", user.email.split("@")[0]),
-                "is_verified": user.is_verified,
-                "created_at": user.created_at.isoformat() if user.created_at else None,
+            "data": {
+                "user": {
+                    "id": user.id,
+                    "email": user.email,
+                    "name": getattr(user, "name", user.email.split("@")[0]),
+                    "is_verified": user.is_verified,
+                    "created_at": user.created_at.isoformat() if user.created_at else None,
+                },
+                "session": {
+                    "id": user.id,
+                    "user_id": user.id,
+                    "expires_at": None,
+                    "token": access_token,
+                },
             },
             "url": None,
         }
@@ -142,12 +150,20 @@ async def better_auth_sign_in(
         )
 
         return {
-            "user": {
-                "id": user.id,
-                "email": user.email,
-                "name": getattr(user, "name", user.email.split("@")[0]),
-                "is_verified": user.is_verified,
-                "created_at": user.created_at.isoformat() if user.created_at else None,
+            "data": {
+                "user": {
+                    "id": user.id,
+                    "email": user.email,
+                    "name": getattr(user, "name", user.email.split("@")[0]),
+                    "is_verified": user.is_verified,
+                    "created_at": user.created_at.isoformat() if user.created_at else None,
+                },
+                "session": {
+                    "id": user.id,
+                    "user_id": user.id,
+                    "expires_at": None,
+                    "token": access_token,
+                },
             },
             "token": access_token,
             "expires_in": JWT_ACCESS_TOKEN_EXPIRE_SECONDS,
@@ -338,12 +354,23 @@ async def register(
 
         # TODO: T038 - Send verification email (mock for now)
 
-        return UserResponse(
-            id=user.id,
-            email=user.email,
-            is_verified=user.is_verified,
-            created_at=user.created_at,
-        )
+        return {
+            "data": {
+                "user": {
+                    "id": user.id,
+                    "email": user.email,
+                    "name": getattr(user, "name", user.email.split("@")[0]),
+                    "is_verified": user.is_verified,
+                    "created_at": user.created_at.isoformat() if user.created_at else None,
+                },
+                "session": {
+                    "id": user.id,
+                    "user_id": user.id,
+                    "expires_at": None,
+                    "token": access_token,
+                },
+            },
+        }
 
     except UserExistsError as e:
         await session.rollback()
@@ -431,12 +458,21 @@ async def login(
         )
 
         return {
-            "user": UserResponse(
-                id=user.id,
-                email=user.email,
-                is_verified=user.is_verified,
-                created_at=user.created_at,
-            ).dict(),
+            "data": {
+                "user": {
+                    "id": user.id,
+                    "email": user.email,
+                    "name": getattr(user, "name", user.email.split("@")[0]),
+                    "is_verified": user.is_verified,
+                    "created_at": user.created_at.isoformat() if user.created_at else None,
+                },
+                "session": {
+                    "id": user.id,
+                    "user_id": user.id,
+                    "expires_at": None,
+                    "token": access_token,
+                },
+            },
             "token": access_token,
             "expires_in": JWT_ACCESS_TOKEN_EXPIRE_SECONDS,
         }

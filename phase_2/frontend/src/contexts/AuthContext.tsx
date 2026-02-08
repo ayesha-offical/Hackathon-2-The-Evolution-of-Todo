@@ -88,12 +88,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       try {
         // Call get-session endpoint with credentials to include HTTP-only cookies (Better Auth)
+        const headers: HeadersInit = {
+          'Content-Type': 'application/json',
+        };
+
+        // If token is in sessionStorage (from login response), add as Authorization header
+        const sessionToken = typeof window !== 'undefined' ? sessionStorage.getItem('auth_token') : null;
+        if (sessionToken) {
+          headers['Authorization'] = `Bearer ${sessionToken}`;
+          console.debug('[Auth] Using token from sessionStorage as Authorization header');
+        }
+
         const response = await fetch(`${apiUrl}/api/v1/auth/get-session`, {
           method: 'GET',
           credentials: 'include', // CRITICAL: Include HTTP-only cookies (Better Auth session) in request
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers,
           signal: controller.signal,
         });
 

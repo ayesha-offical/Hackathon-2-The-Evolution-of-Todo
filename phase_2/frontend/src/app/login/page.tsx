@@ -249,24 +249,40 @@ export default function LoginPage() {
         password: data.password,
       });
 
-      // result.data check for Better Auth success
+      console.log("[Login] Sign in response:", result);
+
+      // Check if sign-in was successful (result.data exists)
       if (result && result.data) {
-        console.log("[Login] Auth successful, refreshing session...");
-        
-        // 1. Session refresh karein taake Context update ho jaye
+        console.log("[Login] Auth successful, token received:", result.token ? "yes" : "no");
+
+        // Store token in sessionStorage as fallback if cookies don't work
+        if (result.token) {
+          sessionStorage.setItem('auth_token', result.token);
+          console.log("[Login] Token stored in sessionStorage");
+        }
+
+        // Small delay to ensure cookies are processed by browser
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Session refresh to load user from cookies or backend
+        console.log("[Login] Calling refreshSession to populate context...");
         await refreshSession();
-        
-        // 2. Confetti dikhayein
+
+        // Add another delay to ensure session is refreshed
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        // Confetti animation
         setShowConfetti(true);
 
-        // 3. FORCE REDIRECT: Agar 2 second tak automatic redirect na ho toh ye chal jaye
+        // Redirect to dashboard after confetti or after timeout
         setTimeout(() => {
-          console.log("[Login] Triggering manual redirect to dashboard");
+          console.log("[Login] Redirecting to dashboard");
           router.push(ROUTES.DASHBOARD);
         }, 2000);
 
       } else {
         console.warn("[Login] Sign in failed: No data in response");
+        console.log("[Login] Response structure:", JSON.stringify(result, null, 2));
         setSubmitError(ERROR_MESSAGES.INVALID_CREDENTIALS);
       }
     } catch (error) {
