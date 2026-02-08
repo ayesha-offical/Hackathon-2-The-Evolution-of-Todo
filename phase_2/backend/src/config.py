@@ -55,7 +55,7 @@ class Settings(BaseSettings):
     # CORS CONFIGURATION
     # =========================================================================
 
-    frontend_url: str = "https://focus-ibl84uy58-ayesha-officals-projects.vercel.app"
+    frontend_url: str = "https://focus-hub-omega.vercel.app"
     """Frontend URL for CORS - allows requests from frontend origin only
     Note: 3000 is the standard Next.js dev server port"""
 
