@@ -75,7 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    */
   async function checkSession() {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+      const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://ayeshamughal2513-focus-hub.hf.space';
       console.debug('[Auth] Checking Better Auth session from:', `${apiUrl}/api/v1/auth/get-session`);
 
       // Create abort controller to prevent hanging indefinitely

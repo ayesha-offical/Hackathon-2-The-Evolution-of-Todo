@@ -13,7 +13,7 @@
  * Environment: NEXT_PUBLIC_API_BASE_URL
  * Default: http://localhost:8000 (development)
  */
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://ayeshamughal2513-focus-hub.hf.space';
 
 /**
  * Better Auth service URL
@@ -21,7 +21,7 @@ export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://loca
  * Default: http://localhost:8000/api/v1/auth (development)
  */
 export const BETTER_AUTH_URL =
-  process.env.NEXT_PUBLIC_BETTER_AUTH_URL || 'http://localhost:8000/api/v1/auth';
+  process.env.NEXT_PUBLIC_BETTER_AUTH_URL || 'https://ayeshamughal2513-focus-hub.hf.space/api/v1/auth';
 
 // ============================================================================
 // API ENDPOINTS

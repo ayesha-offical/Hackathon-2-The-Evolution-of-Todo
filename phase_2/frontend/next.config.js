@@ -23,9 +23,9 @@ const nextConfig = {
   env: {
     // Public environment variables (prefixed with NEXT_PUBLIC_)
     // These are embedded at build time
-    NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000',
+    NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || 'https://ayeshamughal2513-focus-hub.hf.space',
     NEXT_PUBLIC_BETTER_AUTH_URL:
-      process.env.NEXT_PUBLIC_BETTER_AUTH_URL || 'http://localhost:8000/api/v1/auth',
+      process.env.NEXT_PUBLIC_BETTER_AUTH_URL || 'https://ayeshamughal2513-focus-hub.hf.space/api/v1/auth',
   },
 
   // Webpack configuration for development
@@ -55,7 +55,7 @@ const nextConfig = {
 
   // Rewrites for API proxy (optional)
   async rewrites() {
-    const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+    const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://ayeshamughal2513-focus-hub.hf.space';
     return {
       beforeFiles: [
         // Proxy /api/* to backend
