@@ -20,6 +20,9 @@ from src.config import get_settings
 from src.models.user import User  # noqa: F401
 from src.models.task import Task  # noqa: F401
 from src.models.refresh_token import RefreshToken  # noqa: F401
+from src.models.conversation import Conversation  # noqa: F401
+from src.models.message import Message  # noqa: F401
+from src.models.contact_message import ContactMessage  # noqa: F401
 
 # Get SQLModel metadata (all models imported above auto-register)
 from sqlmodel import SQLModel
@@ -69,9 +72,13 @@ def run_migrations_online() -> None:
     configuration = config.get_section(config.config_ini_section)
     configuration["sqlalchemy.url"] = settings.database_url
 
+    # Remove sslmode parameter for asyncpg compatibility
+    db_url = settings.database_url.replace("?sslmode=require", "")
+
     connectable = create_async_engine(
-        settings.database_url,
+        db_url,
         poolclass=pool.NullPool,
+        connect_args={"ssl": True},
     )
 
     async def run_async_migrations():

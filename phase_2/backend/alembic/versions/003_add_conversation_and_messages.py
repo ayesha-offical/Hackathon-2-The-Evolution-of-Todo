@@ -19,6 +19,12 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
+# Alembic revision identifiers
+revision = '003'
+down_revision = '002'
+branch_labels = None
+depends_on = None
+
 
 def upgrade() -> None:
     """Create conversations and messages tables for AI chatbot."""
