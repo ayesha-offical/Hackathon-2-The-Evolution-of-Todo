@@ -220,17 +220,19 @@ export default function LoginPage() {
 
   /**
    * Redirect authenticated users to dashboard
+   * BUT: Skip if showConfetti is active (fresh sign-in with animation)
+   * In that case, let the confetti useEffect handle the redirect
    */
   useEffect(() => {
-    if (!authLoading && user) {
-      console.log("[Login] User detected, redirecting to dashboard...");
+    if (!authLoading && user && !showConfetti) {
+      console.log("[Login] User detected (not fresh sign-in), redirecting to dashboard...");
       router.push(ROUTES.DASHBOARD);
     }
-  }, [authLoading, user, router]);
+  }, [authLoading, user, showConfetti, router]);
 
   /**
    * Auto-navigate to dashboard after confetti completes if user is loaded
-   * (triggered after manual sign-in, not the automatic redirect above)
+   * This is the primary redirect path for fresh sign-in (with animation)
    */
   useEffect(() => {
     if (!showConfetti || !user) {
