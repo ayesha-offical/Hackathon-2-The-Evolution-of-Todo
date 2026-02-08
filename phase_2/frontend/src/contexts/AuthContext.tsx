@@ -177,10 +177,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Call logout endpoint to clear HTTP-only cookies and revoke refresh tokens
       try {
         console.debug('[Auth] Calling logout endpoint to clear Better Auth cookies');
-        await apiCall("/api/v1/auth/logout", { method: "POST" });
+        const response = await apiCall("/api/v1/auth/logout", { method: "POST" });
+        console.debug('[Auth] Logout endpoint response status:', response.status);
+        // Note: 401 is not critical - token may have expired between requests
       } catch (err) {
         // Logout endpoint error is not critical - Better Auth will clear on next check
         console.debug('[Auth] Logout endpoint error (non-critical):', err);
+      }
+
+      // Clear all auth-related storage
+      console.debug('[Auth] Clearing all auth tokens and state');
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('auth_token');
+        localStorage.removeItem('auth_token');
       }
 
       // Clear user state
@@ -199,6 +208,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error("[Auth] Logout error:", err);
       // Still redirect even if there's an error
       setUser(null);
+      // Clear storage even if redirect fails
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('auth_token');
+        localStorage.removeItem('auth_token');
+      }
       router.push(ROUTES.LOGIN);
     }
   }
