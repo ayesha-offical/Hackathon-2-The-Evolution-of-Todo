@@ -1,12 +1,11 @@
 // Task: Better Auth client initialization for frontend authentication
-// @specs/001-sdd-initialization/features/authentication.md §Better Auth Integration
-
 import { createAuthClient } from "better-auth/react";
 
 export const authClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL || "https://focus-hub-omega.vercel.app/api/v1/auth",
+  // YAHAN BACKEND (Hugging Face) KA URL HONA CHAHIYE
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "https://ayeshamughal2513-focus-hub.hf.space",
   fetchOptions: {
-    credentials: "include",
+    credentials: "include", // Taake cookies cross-domain save hon
   },
 });
 
