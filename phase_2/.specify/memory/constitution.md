@@ -1,31 +1,41 @@
-# Phase 2 Todo App Constitution: Full-Stack Web Application
+# Phase 2-3 Todo App Constitution: Full-Stack Web Application + AI Chatbot
 
 <!--
-  SYNC IMPACT REPORT (Version: 1.0.0 from 0.0.0)
+  SYNC IMPACT REPORT (Version: 2.0.0 from 1.0.0)
   ============================================================================
-  This constitution document establishes governance for Phase 2 of the Todo
-  Full-Stack Web Application following Spec-Driven Development (SDD) principles.
+  This constitution document establishes governance for Phase 2-3 of the Todo
+  Full-Stack Web Application with AI Chatbot integration following Spec-Driven
+  Development (SDD) principles.
 
-  Version Bump: MINOR (0.0.0 → 1.0.0)
-  Rationale: Initial constitution establishment for Phase 2
+  Version Bump: MAJOR (1.0.0 → 2.0.0)
+  Rationale: Phase III introduces AI agent architecture, MCP server, and
+             conversation persistence. These are architecturally significant
+             and require new principles and constraints.
 
   Changed Principles:
-  - N/A (initial version)
+  - VI. No Manual Coding Rule: clarified for AI agent context
+  - IV. Stateless Backend: extended to cover AI agent statelessness
 
-  Added Sections:
-  - I. Spec-Driven Development (SDD)
-  - II. The JWT Bridge (Security Critical)
-  - III. User Isolation & Multi-Tenancy
-  - IV. Stateless Backend Architecture
-  - V. Error Handling & HTTP Semantics
-  - VI. No Manual Coding Rule
-  - Technology Stack & Dependencies
-  - Development Workflow & Discipline
+  Added Principles:
+  - VII. MCP Server Architecture (AI Integration)
+  - VIII. AI Agent Stateless Design
+  - IX. Conversation History & Persistence
+
+  Added Technology:
+  - MCP SDK for tool exposure
+  - OpenAI Agents SDK for AI logic
+  - SQLModel (Conversation, Message) for persistence
+  - OpenAI ChatKit for frontend conversational UI
+
+  Added Code Organization:
+  - backend/src/mcp/ (MCP server implementation)
+  - frontend/src/app/chat/ (ChatKit integration)
+  - Database models: Conversation, Message (linked to User via user_id)
 
   Templates Affected:
-  ✅ plan-template.md (Constitution Check section aligns)
-  ✅ spec-template.md (Feature spec inputs aligned with architecture)
-  ✅ tasks-template.md (Task organization follows Constitution phases)
+  ✅ plan-template.md (New AI Architecture section)
+  ✅ spec-template.md (Conversation & tool specs support)
+  ✅ tasks-template.md (MCP tool definition tasks)
 
   Deferred TODOs: None
   ============================================================================
@@ -151,6 +161,137 @@ All errors MUST be raised as FastAPI `HTTPException` with appropriate status cod
 
 ---
 
+### VII. MCP Server Architecture (AI Integration)
+
+The backend exposes task operations as tools via a **stateless MCP (Model Context Protocol) Server** built with the Official MCP SDK.
+
+**MCP Server Guarantees:**
+- The MCP server is a **separate FastAPI service** (or integrated endpoint) that implements the MCP protocol.
+- All task operations (create, read, update, delete) are exposed as **MCP tools** (not direct database calls).
+- Tool names follow the pattern: `task_<action>` (e.g., `task_create`, `task_list`, `task_update`, `task_delete`).
+- Every MCP tool receives `user_id` as a **mandatory parameter** (extracted from the JWT and passed by the AI Agent).
+- MCP tools return results in a standardized format (e.g., `{"success": bool, "data": {...}, "error": str}`).
+- Tools MUST validate the `user_id` and enforce permission checks; they MUST NOT return data belonging to other users.
+
+**Frontend to AI to MCP Flow:**
+```
+User Message (in Chat UI)
+  ↓
+POST /api/v1/chat { user_id, message, conversation_id }
+  ↓
+Backend fetches conversation history (filtered by user_id)
+  ↓
+OpenAI Agent receives history + user message + list of available MCP tools
+  ↓
+Agent decides to call MCP tool (or respond directly)
+  ↓
+Agent calls MCP tool with user_id + parameters
+  ↓
+MCP tool queries DB (filtered by user_id), returns result
+  ↓
+Agent processes result, generates response
+  ↓
+Backend stores both user message and AI response in Conversation table (linked to user_id)
+  ↓
+Response returned to Chat UI
+```
+
+**Rationale:** Ensures the AI agent cannot access or modify data it shouldn't; the MCP protocol provides a clean, standardized interface for tool discovery and invocation.
+
+---
+
+### VIII. AI Agent Stateless Design
+
+The OpenAI Agent MUST remain **completely stateless** between invocations. It MUST NOT store or maintain internal state.
+
+**Agent Rules:**
+- **No persistent memory:** The agent does NOT retain conversation context between requests. All context comes from the `/api/v1/chat` request.
+- **Conversation history is backend-managed:** The backend MUST:
+  - Fetch all previous messages for the conversation before invoking the agent.
+  - Provide the full message history (user_id, timestamp, role, content) to the agent.
+  - Store the agent's response back in the database immediately after generation.
+- **No agent-side database access:** The agent MUST NOT call the database directly. All data operations go through MCP tools.
+- **Deterministic output:** Given the same conversation history and user message, the agent MUST produce the same response (or semantically equivalent).
+
+**Agent Configuration (Required in Environment):**
+```
+OPENAI_API_KEY=sk-...                    # OpenAI API credentials
+OPENAI_AGENT_MODEL=gpt-4-turbo-preview   # Model to use for agent
+OPENAI_AGENT_TEMPERATURE=0.7             # Determinism vs. creativity
+MCP_SERVER_URL=http://localhost:8001     # URL to MCP server (if separate)
+```
+
+**Rationale:** Statelessness ensures horizontal scalability, simplifies debugging, and prevents memory leaks. Backend-managed history ensures consistency and enables multi-turn conversations with full context.
+
+---
+
+### IX. Conversation History & Persistence
+
+Every conversation and message MUST be stored in the database, strictly isolated by `user_id`.
+
+**Database Models (Required in SQLModel):**
+
+**Conversation Model:**
+```python
+class Conversation(SQLModel, table=True):
+    id: UUID4 = Field(default_factory=uuid4, primary_key=True)
+    user_id: UUID4 = Field(foreign_key="user.id")  # User isolation
+    title: str | None = None                        # Auto-generated or user-provided
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    # Relationship to messages
+    messages: list["Message"] = Relationship(back_populates="conversation")
+```
+
+**Message Model:**
+```python
+class Message(SQLModel, table=True):
+    id: UUID4 = Field(default_factory=uuid4, primary_key=True)
+    conversation_id: UUID4 = Field(foreign_key="conversation.id")
+    user_id: UUID4 = Field(foreign_key="user.id")  # Redundant for isolation check
+    role: str = Field(...)  # "user", "assistant", "system"
+    content: str = Field(...)
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    # Relationship back to conversation
+    conversation: "Conversation" = Relationship(back_populates="messages")
+```
+
+**Conversation History Retrieval (Required):**
+- **Every `/api/v1/chat` request MUST:**
+  1. Extract `user_id` from JWT.
+  2. Fetch all messages for the conversation WHERE `user_id = <extracted_user_id>` AND `conversation_id = <provided_id>`.
+  3. Pass the full message history to the OpenAI Agent (in chronological order).
+  4. Store both the new user message and AI response with `user_id` and `conversation_id`.
+
+**API Endpoint (`POST /api/v1/chat`):**
+```
+Request:
+{
+  "conversation_id": "<UUID>",      # (Optional; create new if omitted)
+  "message": "<user input>"
+}
+
+Response:
+{
+  "conversation_id": "<UUID>",
+  "message_id": "<UUID>",           # AI response message ID
+  "response": "<AI output>",
+  "conversation": [
+    {"id": "<UUID>", "role": "user", "content": "...", "timestamp": "..."},
+    {"id": "<UUID>", "role": "assistant", "content": "...", "timestamp": "..."}
+  ]
+}
+```
+
+**User Isolation Rules (Critical):**
+- **Every database query for messages MUST include `WHERE user_id = <JWT_user_id>`**.
+- **API responses MUST NOT include messages where `user_id != <JWT_user_id>`**, even if a query accidentally retrieved them.
+- Violation of this rule is a **security defect**.
+
+**Rationale:** Persistent conversation history enables multi-turn dialogues; strict user isolation prevents cross-user data leakage and ensures GDPR/privacy compliance.
+
+---
+
 ## Technology Stack & Dependencies
 
 ### Backend (Python/FastAPI)
@@ -162,18 +303,27 @@ All errors MUST be raised as FastAPI `HTTPException` with appropriate status cod
 - **Database:** Neon Serverless PostgreSQL
 - **Authentication:** Better Auth (via JWT verification)
 - **HTTP Client:** httpx (for external calls)
-- **Task Queue (if needed):** Celery + Redis (not mandated for Phase 2 MVP)
+- **MCP Server:** Official MCP SDK (for tool exposure)
+- **AI Agent:** OpenAI Agents SDK (for agent logic)
+- **AI Model:** OpenAI API (gpt-4-turbo-preview or latest)
+- **Task Queue (if needed):** Celery + Redis (not mandated for Phase 2-3 MVP)
 - **Testing:** pytest + pytest-asyncio
 - **Linting/Formatting:** ruff (formatter + linter)
 
 **Environment Variables (Required):**
 ```
-DATABASE_URL=postgresql://...  # Neon connection string
-BETTER_AUTH_SECRET=...          # Shared JWT secret
+DATABASE_URL=postgresql://...           # Neon connection string
+BETTER_AUTH_SECRET=...                  # Shared JWT secret
 API_PORT=8000
 API_HOST=0.0.0.0
 LOG_LEVEL=info
 ENVIRONMENT=development|production
+
+# Phase III: AI Chatbot
+OPENAI_API_KEY=sk-...                   # OpenAI API key
+OPENAI_AGENT_MODEL=gpt-4-turbo-preview  # Agent model
+OPENAI_AGENT_TEMPERATURE=0.7            # Response creativity (0.0-1.0)
+MCP_SERVER_URL=http://localhost:8001    # MCP server (if separate service)
 ```
 
 ### Frontend (Next.js/React)
@@ -186,6 +336,8 @@ ENVIRONMENT=development|production
 - **HTTP Client:** fetch API or axios
 - **State Management:** React Context (or minimal Zustand if needed)
 - **Form Handling:** React Hook Form + zod validation
+- **Chat UI:** OpenAI ChatKit (for conversational interface)
+- **Chat State:** React Context for conversation history management
 - **Testing:** jest + React Testing Library (if tests requested)
 - **Linting/Formatting:** ESLint + Prettier
 
@@ -221,13 +373,27 @@ backend/
 │   ├── main.py                 # FastAPI app initialization
 │   ├── middleware/             # JWT verification, CORS, logging
 │   ├── models/                 # SQLModel entity definitions
+│   │   ├── task.py
+│   │   ├── user.py
+│   │   ├── conversation.py     # Phase III: Conversation history
+│   │   └── message.py          # Phase III: Messages
 │   ├── schemas/                # Pydantic request/response models
 │   ├── services/               # Business logic layer
 │   ├── api/                    # Route handlers
 │   │   └── v1/
 │   │       ├── tasks.py
 │   │       ├── users.py
-│   │       └── auth.py
+│   │       ├── auth.py
+│   │       └── chat.py         # Phase III: Chat endpoint
+│   ├── mcp/                    # Phase III: MCP Server
+│   │   ├── __init__.py
+│   │   ├── server.py           # MCP server initialization
+│   │   ├── tools/
+│   │   │   ├── task_create.py
+│   │   │   ├── task_list.py
+│   │   │   ├── task_update.py
+│   │   │   └── task_delete.py
+│   │   └── agent.py            # OpenAI Agent initialization
 │   ├── db/                     # Database initialization, migrations
 │   └── config.py               # Environment and app settings
 ├── tests/
@@ -244,18 +410,34 @@ frontend/
 │   ├── app/                    # Next.js app directory
 │   │   ├── layout.tsx          # Root layout
 │   │   ├── page.tsx            # Home page
-│   │   └── tasks/
-│   │       ├── page.tsx        # Tasks list
-│   │       └── [id]/
-│   │           └── page.tsx    # Task detail/edit
+│   │   ├── tasks/
+│   │   │   ├── page.tsx        # Tasks list
+│   │   │   └── [id]/
+│   │   │       └── page.tsx    # Task detail/edit
+│   │   └── chat/               # Phase III: Chat interface
+│   │       ├── layout.tsx      # Chat layout (sidebar + main)
+│   │       ├── page.tsx        # Chat page with ChatKit
+│   │       └── [conversation_id]/
+│   │           └── page.tsx    # Conversation detail
 │   ├── components/             # Reusable React components
 │   │   ├── TaskList.tsx
 │   │   ├── TaskForm.tsx
+│   │   ├── chat/               # Phase III: Chat components
+│   │   │   ├── ChatWindow.tsx
+│   │   │   ├── MessageList.tsx
+│   │   │   └── MessageInput.tsx
 │   │   └── common/
 │   ├── lib/                    # Utilities, API clients
 │   │   ├── api.ts              # Fetch wrapper with auth
-│   │   └── auth.ts             # Better Auth integration
+│   │   ├── auth.ts             # Better Auth integration
+│   │   └── chat.ts             # Phase III: Chat API helper
+│   ├── contexts/               # React Context providers
+│   │   ├── AuthContext.tsx
+│   │   └── ChatContext.tsx     # Phase III: Conversation state
 │   ├── types/                  # TypeScript interfaces
+│   │   ├── task.ts
+│   │   ├── user.ts
+│   │   └── chat.ts             # Phase III: Chat types
 │   └── styles/                 # Global Tailwind config (if needed)
 ├── tests/                      # Jest + React Testing Library (if tests requested)
 └── package.json
@@ -330,6 +512,9 @@ If a conflict arises, resolve in this order:
 - [ ] Write queries that don't filter by `user_id`.
 - [ ] Hardcode secrets or environment-dependent values.
 - [ ] Add manual step-by-step instructions (use automation via CI/CD and Makefile).
+- [ ] **Phase III Only:** Create MCP tools that access the database directly; all data access MUST go through service methods with `user_id` validation.
+- [ ] **Phase III Only:** Allow the AI Agent to store or maintain state between requests; all conversation history MUST come from the backend.
+- [ ] **Phase III Only:** Return data from MCP tools without verifying the `user_id` matches the request context.
 
 ### If Conflict Arises:
 
@@ -352,4 +537,4 @@ If a conflict arises, resolve in this order:
 
 ---
 
-**Version**: 1.0.0 | **Ratified**: 2025-01-18 | **Last Amended**: 2025-01-18
+**Version**: 2.0.0 | **Ratified**: 2025-02-08 | **Last Amended**: 2025-02-08
