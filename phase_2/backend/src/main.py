@@ -81,33 +81,20 @@ app = FastAPI(
 # Build allowed origins list for local development
 # For development: Allow localhost on standard ports (3000, 3001)
 # For production: Only allow configured frontend URL
-if settings.is_production():
-    allowed_origins = [settings.frontend_url]
-else:
-    allowed_origins = [
-        "http://localhost:3000",    # Standard Next.js dev port
-        "http://localhost:3001",    # Alternative Next.js compiler port
-        "http://127.0.0.1:3000",    # Localhost IP variant
-        "http://127.0.0.1:3001",    # Localhost IP variant
-    ]
-    if settings.frontend_url and settings.frontend_url not in allowed_origins:
-        allowed_origins.append(settings.frontend_url)
-
+# UPDATED: Simplified CORS for seamless Vercel <-> Hugging Face connection
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
-    allow_credentials=True,                  # Allow cookies/authorization headers (CRITICAL for Better Auth)
-    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allow_headers=["Content-Type", "Authorization"],
-    expose_headers=["Content-Type", "Authorization", "Set-Cookie"],  # CRITICAL: Expose Set-Cookie for browser to receive cookies
-    max_age=600,                             # Cache preflight response for 10 minutes
+    allow_origins=["*"],  # Allows all origins to prevent 'Failed to Fetch'
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["Content-Type", "Authorization", "Set-Cookie"],
+    max_age=600,
 )
 
-# JWT Verification Middleware (Task: T016 - Constitution II - JWT Bridge)
-# Added SECOND (after CORS) so OPTIONS requests bypass it
-# Extracts user_id from JWT token and stores in request.state.user_id
+# JWT Verification Middleware
+# Added SECOND so OPTIONS requests bypass it
 app.add_middleware(JWTVerificationMiddleware)
-
 # ============================================================================
 # EXCEPTION HANDLERS
 # ============================================================================
