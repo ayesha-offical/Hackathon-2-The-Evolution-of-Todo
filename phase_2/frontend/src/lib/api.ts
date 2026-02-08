@@ -3,6 +3,7 @@
 // Task: T012 | @specs/003-modern-ui-improvements/contracts/contact-api.md
 
 import { ContactFormData, ContactMessageResponse, ApiErrorResponse } from "@/types/contact";
+import type { ChatRequestBody, ChatResponseBody } from "@/types/chat";
 
 /**
  * Wrapper for API calls to backend
@@ -129,6 +130,72 @@ export async function submitContactForm(
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Failed to submit contact form";
     console.error("[API] Contact form submission failed:", errorMessage);
+    throw error;
+  }
+}
+
+/**
+ * Task: T332 | Spec: @specs/004-todo-ai-chatbot/spec.md §FR-001, FR-011
+ * Send a message to the AI chatbot and receive response
+ *
+ * Features:
+ * - Sends user message to POST /api/v1/chat endpoint
+ * - Includes JWT token via Authorization header
+ * - Supports optional conversation_id for continuing existing conversations
+ * - Returns AI response with full message history
+ *
+ * @param message - User message text (1-2000 chars)
+ * @param conversationId - Optional existing conversation ID
+ * @returns ChatResponseBody with AI response and conversation history
+ * @throws Error if validation fails, network error, or server error
+ *
+ * Reference:
+ * - spec.md §FR-001 (endpoint contract)
+ * - spec.md §FR-011 (JWT verification requirement)
+ * - spec.md §SC-001, SC-002, SC-003 (task operations)
+ */
+export async function sendChatMessage(
+  message: string,
+  conversationId?: string
+): Promise<ChatResponseBody> {
+  try {
+    // Validate message
+    if (!message || !message.trim()) {
+      throw new Error("Message cannot be empty");
+    }
+    if (message.length > 2000) {
+      throw new Error("Message exceeds maximum length of 2000 characters");
+    }
+
+    const requestBody: ChatRequestBody = {
+      message: message.trim(),
+      ...(conversationId && { conversation_id: conversationId }),
+    };
+
+    console.debug("[Chat API] Sending message to /api/v1/chat", {
+      messageLength: message.length,
+      hasConversationId: !!conversationId,
+    });
+
+    const response = await apiPost("/api/v1/chat", requestBody as unknown as Record<string, unknown>);
+
+    // Handle HTTP error responses
+    if (!response.ok) {
+      const errorData: ApiErrorResponse = await response.json().catch(() => ({}));
+      const errorMessage = errorData.detail || errorData.message || `HTTP ${response.status}`;
+      throw new Error(errorMessage);
+    }
+
+    // Parse and return successful response
+    const data: ChatResponseBody = await response.json();
+    console.log("[Chat API] Message sent successfully", {
+      conversationId: data.conversation_id,
+      messageCount: data.messages.length,
+    });
+    return data;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Failed to send chat message";
+    console.error("[Chat API] Failed to send message:", errorMessage);
     throw error;
   }
 }

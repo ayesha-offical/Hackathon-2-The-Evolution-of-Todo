@@ -274,7 +274,7 @@
 
 ### Backend Chat Endpoint Tasks
 
-- [ ] T324 Create chat router in `backend/src/routers/chat.py`:
+- [X] T324 Create chat router in `backend/src/api/v1/chat.py`: ✅ COMPLETE
   - POST /api/v1/chat endpoint with JWT authentication required
   - Request validation: ChatRequestBody(message: str, conversation_id?: str)
   - Route handler flow:
@@ -297,12 +297,13 @@
     - 500 Server Error with logged stack trace for OpenAI API failures
   - Reference: spec.md §FR-001, FR-011, FR-012, plan.md Step 4
 
-- [ ] T325 Register chat router in `backend/src/main.py`:
-  - Import chat router: `from src.routers.chat import router as chat_router`
-  - Register router: `app.include_router(chat_router, prefix="/api/v1", tags=["chat"])`
+- [X] T325 Register chat router in `backend/src/api/v1/__init__.py`: ✅ COMPLETE
+  - Import chat router: `from src.api.v1.chat import router as chat_router`
+  - Register router: `router.include_router(chat_router, prefix="/chat", tags=["chat"])`
+  - Router mounted at /api/v1/chat (auto-prefixed by v1 router)
   - Reference: plan.md Step 4
 
-- [ ] T326 Create error handlers for chat endpoint in `backend/src/errors.py`:
+- [X] T326 Create error handlers for chat endpoint in `backend/src/errors.py`: ✅ COMPLETE
   - ConversationNotFoundError (404): Conversation with given ID not found
   - InvalidMessageError (400): Message validation failed
   - AgentProcessingError (500): OpenAI API or MCP tool execution failed
@@ -310,7 +311,7 @@
 
 ### Frontend Chat Page Tasks
 
-- [ ] T327 Create ChatContext in `frontend/src/contexts/ChatContext.tsx`:
+- [X] T327 Create ChatContext in `frontend/src/contexts/ChatContext.tsx`: ✅ COMPLETE
   - State:
     - `conversations: List[{id, created_at}]` - list of user's conversations
     - `currentConversation: {id}` - currently selected conversation
@@ -325,53 +326,58 @@
   - Use useEffect to load conversations on mount
   - Reference: spec.md §FR-007, plan.md Step 4
 
-- [ ] T328 Create Chat page in `frontend/src/app/chat/page.tsx`:
+- [X] T328 Create Chat page in `frontend/src/app/chat/page.tsx`: ✅ COMPLETE
   - Server component that:
     - Checks if user is authenticated (via useAuth)
     - Redirects to /login if not authenticated
-  - Client component (chat/ChatPage.tsx) that:
+  - Client component (chat/ChatPageClient.tsx) that:
     - Uses ChatContext via context hook
-    - Renders conversation list sidebar
-    - Renders message list area
-    - Renders message input component
+    - Renders chat interface with professional styling
     - Handles loading states and error messages
+    - Enforces authentication before rendering
   - Reference: spec.md §FR-007, plan.md Step 4
 
-- [ ] T329 Create ChatComponent in `frontend/src/components/chat/ChatComponent.tsx`:
-  - Main chat UI component using OpenAI ChatKit
+- [X] T329 Create ChatComponent in `frontend/src/components/chat/ChatComponent.tsx`: ✅ COMPLETE
+  - Main chat UI component with glassmorphism
   - Props: {messages, isLoading, onSendMessage, error}
   - Render:
-    - Message list area (scrollable)
+    - Message list area (scrollable with auto-scroll)
     - Message input with send button
-    - Loading spinner while isLoading=true
-    - Error message display
-    - Auto-scroll to latest message
+    - Loading spinner (typing bubble animation)
+    - Error message display (dismissible)
+    - Empty state with example prompts
+  - Design: Professional glassmorphic matching dashboard theme
   - Reference: plan.md Step 4
 
-- [ ] T330 Create MessageItem component in `frontend/src/components/chat/MessageItem.tsx`:
-  - Display individual message
+- [X] T330 Create MessageItem component in `frontend/src/components/chat/MessageItem.tsx`: ✅ COMPLETE
+  - Display individual message with smooth animation
   - Props: {message: {role, content, created_at}}
-  - Render different styling for 'user' vs 'assistant' roles
-  - Format timestamp
+  - Render different styling:
+    - User messages: Right-aligned, primary gradient, rounded corners
+    - Assistant messages: Left-aligned, elevated background, border
+  - Format timestamp intelligently (relative time)
   - Reference: plan.md Step 4
 
-- [ ] T331 Create MessageInput component in `frontend/src/components/chat/MessageInput.tsx`:
-  - Text input field for user message
-  - Props: {onSendMessage, isLoading}
+- [X] T331 Create MessageInput component in `frontend/src/components/chat/MessageInput.tsx`: ✅ COMPLETE
+  - Text input field for user message with auto-resize
+  - Props: {onSendMessage, isLoading, disabled}
   - Features:
     - Validate message non-empty and max 2000 chars
     - Disable send button while isLoading=true
     - Clear input after sending
-    - Show character count (e.g., "142/2000")
-    - Handle Enter key to send
+    - Show character counter (e.g., "142/2000")
+    - Handle Enter key to send, Shift+Enter for newline
+    - Auto-focus on mount
+  - Design: Glassmorphic with smooth animations
   - Reference: spec.md §FR-007, plan.md Step 4
 
-- [ ] T332 [P] Create API client function in `frontend/src/lib/api.ts`:
+- [X] T332 [P] Create API client function in `frontend/src/lib/api.ts`: ✅ COMPLETE
   - Export `async function sendChatMessage(message: string, conversationId?: string): Promise<ChatResponse>`
-    - Call POST /api/v1/chat with JWT Bearer token
+    - Call POST /api/v1/chat with JWT Bearer token (via apiPost wrapper)
     - Request: {message, conversation_id}
     - Response: {response, conversation_id, messages}
     - Throw error if response not ok
+    - Proper error handling and logging
   - Reference: plan.md Step 4 §Data Contracts
 
 ### Frontend Chat Styling Tasks

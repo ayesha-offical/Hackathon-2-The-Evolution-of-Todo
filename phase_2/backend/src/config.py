@@ -60,6 +60,16 @@ class Settings(BaseSettings):
     Note: 3000 is the standard Next.js dev server port"""
 
     # =========================================================================
+    # OPENAI CONFIGURATION (Phase III - Todo AI Chatbot)
+    # =========================================================================
+
+    openai_api_key: str
+    """OpenAI API key - MUST be set via OPENAI_API_KEY env var (Task T340)"""
+
+    openai_model: str = "gpt-4o-mini"
+    """OpenAI model to use - defaults to gpt-4o-mini for cost efficiency (Task T340)"""
+
+    # =========================================================================
     # CONSTANTS (Not from environment - hardcoded JWT expiration)
     # =========================================================================
 
@@ -102,7 +112,8 @@ try:
 except Exception as e:
     raise RuntimeError(
         f"Failed to load settings from environment. "
-        f"Ensure .env or .env.local exists (in backend/ or project root) with DATABASE_URL and BETTER_AUTH_SECRET. "
+        f"Ensure .env or .env.local exists (in backend/ or project root) with: "
+        f"DATABASE_URL, BETTER_AUTH_SECRET, OPENAI_API_KEY. "
         f"Error: {e}"
     )
 
