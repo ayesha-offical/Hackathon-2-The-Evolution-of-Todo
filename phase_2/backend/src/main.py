@@ -84,7 +84,7 @@ app = FastAPI(
 # UPDATED: Simplified CORS for seamless Vercel <-> Hugging Face connection
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins to prevent 'Failed to Fetch'
+    allow_origins=["https://focus-hub-omega.vercel.app"],  # Allows all origins to prevent 'Failed to Fetch'
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
