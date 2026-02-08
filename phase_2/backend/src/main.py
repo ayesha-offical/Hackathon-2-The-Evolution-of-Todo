@@ -81,15 +81,15 @@ app = FastAPI(
 # Build allowed origins list for local development
 # For development: Allow localhost on standard ports (3000, 3001)
 # For production: Only allow configured frontend URL
-# UPDATED: Simplified CORS for seamless Vercel <-> Hugging Face connection
+# CORS configuration for cross-domain requests (Vercel <-> Hugging Face)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://focus-hub-omega.vercel.app"],  # Allows all origins to prevent 'Failed to Fetch'
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-    expose_headers=["Content-Type", "Authorization", "Set-Cookie"],
-    max_age=600,
+    allow_origins=["https://focus-hub-omega.vercel.app"],  # Allow Vercel frontend
+    allow_credentials=True,  # Allow cookies to be sent and received
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
+    expose_headers=["Content-Type", "Authorization"],
+    max_age=3600,  # Cache preflight for 1 hour
 )
 
 # JWT Verification Middleware

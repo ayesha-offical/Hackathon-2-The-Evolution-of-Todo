@@ -56,13 +56,13 @@ async def better_auth_sign_up(
         )
         await session.commit()
 
-        # Set HTTP-only cookies for local development (both access and refresh tokens)
+        # Set HTTP-only cookies for cross-domain requests (Vercel ↔ Hugging Face)
         response.set_cookie(
             key="Authorization",
             value=f"Bearer {access_token}",
             httponly=True,  # True for security - prevents JavaScript access
-            secure=False,   # False for localhost HTTP (would be True in production with HTTPS)
-            samesite="lax",  # "lax" for local development (sufficient for same-domain)
+            secure=True,    # True for production HTTPS
+            samesite="none",  # "none" for cross-domain
             path="/",
             max_age=JWT_ACCESS_TOKEN_EXPIRE_SECONDS,
         )
@@ -70,8 +70,8 @@ async def better_auth_sign_up(
             key="RefreshToken",
             value=refresh_token,
             httponly=True,
-            secure=False,
-            samesite="lax",  # "lax" for local development
+            secure=True,
+            samesite="none",  # "none" for cross-domain
             path="/",
             max_age=2592000,  # 30 days
         )
@@ -121,15 +121,13 @@ async def better_auth_sign_in(
         )
         await session.commit()
 
-        # Set HTTP-only cookies for local development
-        # For localhost: Use samesite="lax" (simpler, sufficient for local dev)
-        # For production: Should use samesite="strict" or "none" with secure=True
+        # Set HTTP-only cookies for cross-domain requests (Vercel ↔ Hugging Face)
         response.set_cookie(
             key="Authorization",
             value=f"Bearer {access_token}",
             httponly=True,  # True for security - prevents JavaScript access
-            secure=False,  # False for localhost HTTP (would be True in production with HTTPS)
-            samesite="lax",  # "lax" for local development (sufficient for same-domain)
+            secure=True,    # True for production HTTPS
+            samesite="none",  # "none" for cross-domain (Vercel <-> Hugging Face)
             path="/",
             max_age=JWT_ACCESS_TOKEN_EXPIRE_SECONDS,
         )
@@ -137,8 +135,8 @@ async def better_auth_sign_in(
             key="RefreshToken",
             value=refresh_token,
             httponly=True,
-            secure=False,
-            samesite="lax",  # "lax" for local development
+            secure=True,
+            samesite="none",  # "none" for cross-domain
             path="/",
             max_age=2592000,
         )
@@ -318,13 +316,13 @@ async def register(
         )
         await session.commit()
 
-        # Set HTTP-only cookies for local development (both access and refresh tokens)
+        # Set HTTP-only cookies for cross-domain requests (Vercel ↔ Hugging Face)
         response.set_cookie(
             key="Authorization",
             value=f"Bearer {access_token}",
             httponly=True,  # True for security - prevents JavaScript access
-            secure=False,   # False for localhost HTTP (would be True in production with HTTPS)
-            samesite="lax",  # "lax" for local development (sufficient for same-domain)
+            secure=True,    # True for production HTTPS
+            samesite="none",  # "none" for cross-domain
             path="/",
             max_age=JWT_ACCESS_TOKEN_EXPIRE_SECONDS,
         )
@@ -332,8 +330,8 @@ async def register(
             key="RefreshToken",
             value=refresh_token,
             httponly=True,
-            secure=False,
-            samesite="lax",  # "lax" for local development
+            secure=True,
+            samesite="none",  # "none" for cross-domain
             path="/",
             max_age=2592000,  # 30 days
         )
@@ -411,13 +409,13 @@ async def login(
         # Commit transaction
         await session.commit()
 
-        # Set HTTP-only cookies for local development
+        # Set HTTP-only cookies for cross-domain requests (Vercel ↔ Hugging Face)
         response.set_cookie(
             key="Authorization",
             value=f"Bearer {access_token}",
             httponly=True,  # True for security - prevents JavaScript access
-            secure=False,  # False for localhost HTTP
-            samesite="lax",  # "lax" for local development
+            secure=True,    # True for production HTTPS
+            samesite="none",  # "none" for cross-domain
             path="/",
             max_age=JWT_ACCESS_TOKEN_EXPIRE_SECONDS,
         )
@@ -426,8 +424,8 @@ async def login(
             key="RefreshToken",
             value=refresh_token,
             httponly=True,
-            secure=False,
-            samesite="lax",  # "lax" for local development
+            secure=True,
+            samesite="none",  # "none" for cross-domain
             path="/",
             max_age=2592000,  # 30 days
         )
@@ -503,13 +501,13 @@ async def refresh(
         # Commit transaction
         await session.commit()
 
-        # Set new access token cookie
+        # Set new access token cookie for cross-domain requests
         response.set_cookie(
             key="Authorization",
             value=f"Bearer {new_access_token}",
             httponly=True,
-            secure=False,  # False for localhost HTTP
-            samesite="lax",  # "lax" for local development
+            secure=True,    # True for production HTTPS
+            samesite="none",  # "none" for cross-domain
             path="/",
             max_age=JWT_ACCESS_TOKEN_EXPIRE_SECONDS,
         )
@@ -577,15 +575,15 @@ async def logout(
         response.delete_cookie(
             "Authorization",
             httponly=True,  # Must match set_cookie parameter
-            secure=False,
-            samesite="lax",  # Must match set_cookie parameter
+            secure=True,
+            samesite="none",  # Must match set_cookie parameter
             path="/",
         )
         response.delete_cookie(
             "RefreshToken",
             httponly=True,  # Must match set_cookie parameter
-            secure=False,
-            samesite="lax",  # Must match set_cookie parameter
+            secure=True,
+            samesite="none",  # Must match set_cookie parameter
             path="/",
         )
 
