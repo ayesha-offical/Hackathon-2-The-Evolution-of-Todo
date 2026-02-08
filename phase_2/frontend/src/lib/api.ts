@@ -8,7 +8,8 @@ import { ContactFormData, ContactMessageResponse, ApiErrorResponse } from "@/typ
  * Wrapper for API calls to backend
  *
  * Features:
- * - Automatically includes credentials (HTTP-only cookies)
+ * - Automatically includes Authorization header from sessionStorage token (for cross-domain auth)
+ * - Includes credentials (HTTP-only cookies) for same-domain requests
  * - Sets Content-Type to application/json
  * - Includes timeout handling to prevent hanging
  * - Proper error handling and logging
@@ -26,10 +27,20 @@ export async function apiCall(
     const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
     const url = `${baseUrl}${endpoint}`;
 
-    const headers = {
+    const headersObj = new Headers({
       "Content-Type": "application/json",
       ...(options?.headers || {}),
-    };
+    });
+
+    // Add Authorization header from sessionStorage token (for cross-domain requests)
+    // This is needed because cookies don't work across different domains
+    if (typeof window !== 'undefined') {
+      const token = sessionStorage.getItem('auth_token');
+      if (token && !headersObj.has('Authorization')) {
+        headersObj.set('Authorization', `Bearer ${token}`);
+        console.debug(`[API] Added Authorization header from sessionStorage`);
+      }
+    }
 
     // Create abort controller to prevent requests from hanging indefinitely
     const controller = new AbortController();
@@ -40,8 +51,8 @@ export async function apiCall(
 
       const response = await fetch(url, {
         ...options,
-        headers,
-        credentials: "include", // CRITICAL: Include HTTP-only cookies
+        headers: headersObj,
+        credentials: "include", // Include HTTP-only cookies (for same-domain requests)
         signal: controller.signal,
       });
 
