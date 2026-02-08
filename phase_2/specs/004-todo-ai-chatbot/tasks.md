@@ -205,11 +205,11 @@
 
 ### OpenAI Agent Infrastructure Tasks
 
-- [ ] T318 Create OpenAI agent initialization in `backend/src/ai/__init__.py`:
+- [x] T318 Create OpenAI agent initialization in `backend/src/ai/__init__.py`: ✅ COMPLETE
   - Create `__init__.py` to mark directory as package
   - Reference: plan.md Step 3 §Artifacts
 
-- [ ] T319 Create agent module in `backend/src/ai/agent.py`:
+- [x] T319 Create agent module in `backend/src/ai/agent.py`: ✅ COMPLETE
   - Import OpenAI Agents SDK: `from openai import OpenAI` or appropriate Agents SDK
   - Function `create_agent(api_key: str, model: str = "gpt-4o-mini")`:
     - Initialize OpenAI client with api_key from environment (OPENAI_API_KEY)
@@ -224,7 +224,7 @@
     - Catch API errors and return error message
   - Reference: spec.md §FR-006, plan.md Step 3 §Key Decisions
 
-- [ ] T320 Create context builder in `backend/src/ai/context_builder.py`:
+- [x] T320 Create context builder in `backend/src/ai/context_builder.py`: ✅ COMPLETE
   - Function `build_agent_context(conversation_history: List[Message], user_id: str) -> dict`:
     - Convert Message objects to dicts: [{"role": msg.role, "content": msg.content}, ...]
     - Create system prompt: "You are a helpful assistant managing a todo list. Help the user create, list, update, and delete tasks..."
@@ -233,7 +233,7 @@
     - Return: {"system": "...", "conversation_history": [...], "user_id": user_id, "available_tools": [...]}
   - Reference: spec.md §FR-003, FR-009, plan.md Step 3
 
-- [ ] T321 Create tool executor wrapper in `backend/src/ai/tool_executor.py`:
+- [x] T321 Create tool executor wrapper in `backend/src/ai/tool_executor.py`: ✅ COMPLETE
   - Function `execute_tool_call(tool_name: str, tool_params: dict, mcp_server) -> dict`:
     - Validate tool_name is in ['task_create', 'task_list', 'task_update', 'task_delete']
     - Call appropriate MCP tool with tool_params
@@ -248,14 +248,14 @@
 
 ### Agent Testing Tasks
 
-- [ ] T322 Write unit tests for agent context builder in `backend/tests/ai/`:
+- [x] T322 Write unit tests for agent context builder in `backend/tests/ai/`: ✅ COMPLETE
   - Test build_agent_context returns correct structure
   - Test conversation_history is properly converted to dicts
   - Test system prompt is included
   - Test user_id is included in context
   - Reference: plan.md Step 3 §Testing
 
-- [ ] T323 Integration test: Verify agent is stateless:
+- [x] T323 Integration test: Verify agent is stateless: ✅ COMPLETE
   - Call agent with context_1 → get response_1
   - Restart agent (fresh initialization)
   - Call agent with context_1 + context_2 → verify agent has NO memory of response_1
