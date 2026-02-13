@@ -1,0 +1,407 @@
+/**
+ * Task: T075 | Spec: TodoFusion Design System
+ * Description: Global CSS with dark theme and glassmorphism effects
+ * Purpose: Apply TodoFusion aesthetic to all components
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ========================================
+   BASE LAYER - HTML & BODY
+   ======================================== */
+
+@layer base {
+  html {
+    @apply scroll-smooth;
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-background text-text-primary font-sans;
+    background-color: #121218;
+  }
+
+  /* Typography base styles */
+  h1 {
+    @apply text-4xl font-bold tracking-tight;
+  }
+
+  h2 {
+    @apply text-3xl font-bold tracking-tight;
+  }
+
+  h3 {
+    @apply text-2xl font-semibold;
+  }
+
+  h4 {
+    @apply text-lg font-semibold;
+  }
+
+  h5 {
+    @apply text-base font-semibold;
+  }
+
+  h6 {
+    @apply text-sm font-semibold;
+  }
+
+  p {
+    @apply text-base leading-relaxed text-text-secondary;
+  }
+
+  a {
+    @apply text-primary hover:text-primary-400 transition-colors duration-fast;
+  }
+
+  /* Link hover effects */
+  a:hover {
+    @apply underline;
+  }
+
+  /* Button reset */
+  button {
+    font-family: inherit;
+  }
+
+  /* Input reset */
+  input,
+  textarea,
+  select {
+    font-family: inherit;
+  }
+}
+
+/* ========================================
+   COMPONENT LAYER
+   ======================================== */
+
+@layer components {
+  /* BUTTON COMPONENTS */
+
+  .btn {
+    @apply inline-flex items-center justify-center font-semibold rounded-lg transition-all duration-normal disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-primary {
+    @apply btn px-6 py-3 bg-gradient-primary text-white hover:shadow-glow active:scale-95;
+  }
+
+  .btn-secondary {
+    @apply btn px-6 py-3 border-2 border-primary/50 text-white hover:border-primary hover:shadow-glow-sm active:scale-95;
+  }
+
+  .btn-destructive {
+    @apply btn px-6 py-3 bg-error text-white hover:bg-error-light active:scale-95;
+  }
+
+  .btn-ghost {
+    @apply btn px-4 py-2 text-text-secondary hover:text-white hover:bg-white/5 active:bg-white/10;
+  }
+
+  /* FORM COMPONENTS */
+
+  .input {
+    @apply w-full px-4 py-3 bg-background-surface/50 border border-border rounded-lg text-white placeholder:text-text-muted focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:shadow-glow-sm backdrop-blur-sm transition-all;
+  }
+
+  .input:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+
+  .input-error {
+    @apply border-error bg-error/5 focus:ring-error/20;
+  }
+
+  .textarea {
+    @apply w-full px-4 py-3 bg-background-surface/50 border border-border rounded-lg text-white placeholder:text-text-muted focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:shadow-glow-sm backdrop-blur-sm transition-all resize-none;
+  }
+
+  .label {
+    @apply block text-sm font-semibold text-text-secondary mb-2;
+  }
+
+  .label-required::after {
+    content: ' *';
+    @apply text-error;
+  }
+
+  /* CARD COMPONENTS */
+
+  .card {
+    @apply bg-background-elevated/80 backdrop-blur-md rounded-lg border border-border shadow-card;
+  }
+
+  .card-interactive {
+    @apply card hover:shadow-card-hover hover:border-primary/30 hover:-translate-y-1 transition-all duration-normal cursor-pointer;
+  }
+
+  .card-glow {
+    @apply bg-background-elevated/80 backdrop-blur-md rounded-lg border border-primary/50 shadow-glow;
+  }
+
+  .card-header {
+    @apply px-6 py-4 border-b border-border;
+  }
+
+  .card-content {
+    @apply px-6 py-4;
+  }
+
+  .card-footer {
+    @apply px-6 py-4 border-t border-border bg-background-surface/50;
+  }
+
+  /* ALERT COMPONENTS */
+
+  .alert {
+    @apply rounded-lg p-4 flex items-start gap-4 backdrop-blur-sm;
+  }
+
+  .alert-success {
+    @apply bg-success/10 border border-success/30 text-success-light;
+  }
+
+  .alert-error {
+    @apply bg-error/10 border border-error/30 text-error-light;
+  }
+
+  .alert-warning {
+    @apply bg-warning/10 border border-warning/30 text-warning-light;
+  }
+
+  .alert-info {
+    @apply bg-primary/10 border border-primary/30 text-primary-300;
+  }
+
+  /* GLASS MORPHISM */
+
+  .glass {
+    @apply backdrop-blur-md bg-white/5 border border-white/10 rounded-lg;
+  }
+
+  .glass-strong {
+    @apply backdrop-blur-lg bg-white/10 border border-white/20 rounded-lg;
+  }
+
+  /* TYPOGRAPHY */
+
+  .section-title {
+    @apply text-3xl font-bold text-white mb-6;
+  }
+
+  .glow-text {
+    @apply text-transparent bg-clip-text bg-gradient-primary font-bold;
+  }
+
+  .text-muted {
+    @apply text-text-secondary;
+  }
+}
+
+/* ========================================
+   UTILITY LAYER
+   ======================================== */
+
+@layer utilities {
+  /* FLEX UTILITIES */
+
+  .flex-center {
+    @apply flex items-center justify-center;
+  }
+
+  .flex-between {
+    @apply flex items-center justify-between;
+  }
+
+  .flex-col-center {
+    @apply flex flex-col items-center justify-center;
+  }
+
+  /* SPACING UTILITIES */
+
+  .space-between {
+    @apply space-y-4;
+  }
+
+  .section-spacing {
+    @apply space-y-8;
+  }
+
+  /* TRANSITION UTILITIES */
+
+  .transition-fast {
+    @apply transition-all duration-150;
+  }
+
+  .transition-normal {
+    @apply transition-all duration-300;
+  }
+
+  .transition-slow {
+    @apply transition-all duration-500;
+  }
+
+  /* TEXT UTILITIES */
+
+  .truncate-line {
+    @apply overflow-hidden text-ellipsis whitespace-nowrap;
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* GRADIENT TEXT */
+
+  .text-gradient {
+    @apply bg-gradient-primary bg-clip-text text-transparent;
+  }
+
+  /* GLASS EFFECT UTILITIES */
+
+  .backdrop-blur-glass {
+    @apply backdrop-blur-md;
+  }
+
+  /* GLOW UTILITIES */
+
+  .glow-sm {
+    @apply shadow-glow-sm;
+  }
+
+  .glow {
+    @apply shadow-glow;
+  }
+
+  .glow-lg {
+    @apply shadow-glow-lg;
+  }
+
+  /* ANIMATION UTILITIES */
+
+  .animate-in {
+    @apply animate-fade-in;
+  }
+
+  .animate-slide-up {
+    @apply animate-slide-up;
+  }
+
+  .animate-float {
+    @apply animate-float;
+  }
+}
+
+/* ========================================
+   SCROLLBAR STYLING
+   ======================================== */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-background-surface/50;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-primary/50 rounded-full hover:bg-primary/70;
+  transition: background-color 0.2s;
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-color: rgba(134, 36, 255, 0.5) rgba(27, 27, 33, 0.5);
+  scrollbar-width: thin;
+}
+
+/* ========================================
+   FOCUS STYLES
+   ======================================== */
+
+:focus-visible {
+  @apply outline-2 outline-offset-2 outline-primary;
+}
+
+button:focus-visible {
+  @apply outline-2 outline-offset-2 outline-primary;
+}
+
+a:focus-visible {
+  @apply outline-2 outline-offset-2 outline-primary;
+}
+
+/* ========================================
+   SELECTION STYLES
+   ======================================== */
+
+::selection {
+  @apply bg-primary/40 text-white;
+}
+
+::-moz-selection {
+  @apply bg-primary/40 text-white;
+}
+
+/* ========================================
+   GLOBAL FIXES
+   ======================================== */
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Remove default input number spinner */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
+}
+
+/* ========================================
+   RESPONSIVE UTILITIES
+   ======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ========================================
+   DARK MODE FORCED
+   ======================================== */
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background-color: #121218;
+  color: #ffffff;
+}
