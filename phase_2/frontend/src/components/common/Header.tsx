@@ -71,12 +71,6 @@ export function Header() {
                       <p className="text-xs text-gray-300 truncate">{user.email}</p>
                     </div>
 
-                    {/* Chat Option Added Here */}
-                    <Link href="/chat" onClick={() => setIsProfileOpen(false)}>
-                      <div className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-400 hover:text-cyan-400 hover:bg-white/5 rounded-xl transition-all">
-                        <span></span> Your Chat
-                      </div>
-                    </Link>
 
                     <Link href={ROUTES.DASHBOARD} onClick={() => setIsProfileOpen(false)}>
                       <div className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-all">

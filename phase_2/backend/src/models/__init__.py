@@ -7,6 +7,5 @@
 from src.models.user import User  # noqa: F401
 from src.models.task import Task  # noqa: F401
 from src.models.refresh_token import RefreshToken  # noqa: F401
-from src.models.contact_message import ContactMessage  # noqa: F401
 
-__all__ = ["User", "Task", "RefreshToken", "ContactMessage"]
+__all__ = ["User", "Task", "RefreshToken"]

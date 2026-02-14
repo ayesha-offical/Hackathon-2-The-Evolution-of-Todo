@@ -20,9 +20,6 @@ from src.config import get_settings
 from src.models.user import User  # noqa: F401
 from src.models.task import Task  # noqa: F401
 from src.models.refresh_token import RefreshToken  # noqa: F401
-from src.models.conversation import Conversation  # noqa: F401
-from src.models.message import Message  # noqa: F401
-from src.models.contact_message import ContactMessage  # noqa: F401
 
 # Get SQLModel metadata (all models imported above auto-register)
 from sqlmodel import SQLModel

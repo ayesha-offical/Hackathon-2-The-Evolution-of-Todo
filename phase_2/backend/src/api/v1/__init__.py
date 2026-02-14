@@ -7,8 +7,6 @@ from fastapi import APIRouter
 
 from src.api.v1.auth import router as auth_router
 from src.api.v1.tasks import router as task_router
-from src.api.v1.messages import router as messages_router
-from src.api.v1.chat import router as chat_router
 
 # Create main router for all v1 endpoints
 router = APIRouter(prefix="/api/v1")
@@ -18,12 +16,6 @@ router.include_router(auth_router, prefix="/auth", tags=["auth"])
 
 # Register task router (Task T052 - Task CRUD endpoints)
 router.include_router(task_router, prefix="/tasks", tags=["tasks"])
-
-# Register messages router (Task T006 - Contact form endpoints)
-router.include_router(messages_router, prefix="/messages", tags=["messages"])
-
-# Register chat router (Task T325 - Chat endpoint for AI-powered task management)
-router.include_router(chat_router, prefix="/chat", tags=["chat"])
 
 # ============================================================================
 # Better Auth Compatibility Router (without /v1 prefix)

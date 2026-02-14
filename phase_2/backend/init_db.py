@@ -11,7 +11,6 @@ from sqlmodel import SQLModel, create_engine
 from src.models.user import User
 from src.models.task import Task
 from src.models.refresh_token import RefreshToken
-from src.models.contact_message import ContactMessage
 from src.config import settings
 
 def create_db_and_tables():
